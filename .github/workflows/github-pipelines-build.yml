@@ -1,0 +1,25 @@
+# Trigger to run pipeline
+on:
+  # Triggers the workflow on push request events
+  push:
+
+env:
+  majorVersion: '24'
+  minorVersion: '05'
+
+# Name of build pipeline
+name: build.beta.1
+
+# Build pipeline jobs
+jobs:
+  Tag_Commit_with_Version:
+    name: Tag Commit with Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Push Version Tag
+        run: |
+          git tag "${{env.majorVersion}}.${{env.minorVersion}}.${{github.run_number}}"
+          git push --tags
+

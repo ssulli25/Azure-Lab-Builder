@@ -1,0 +1,50 @@
+# Trigger to run pipeline
+on:
+  # This event allows you to trigger the workflow manually from the GitHub Actions tab in your repository.
+  workflow_dispatch:
+
+# env:
+#   majorVersion: '24'
+#   minorVersion: '05'
+
+# Name of deploy pipeline
+name: deploy.beta.1
+
+# Deploy pipeline jobs
+jobs:
+  Pre_Deployment_Validation:
+    name: Pre-Deployment Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Azure - Hub
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_HUB }}
+      - name: Show Hub Account Details
+        run: |
+          az account show --output table
+      - name: Login to Azure - Prod
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+      - name: Show Prod Account Details
+        run: |
+          az account show --output table
+      - name: Login to Azure - Dev
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
+      - name: Show Dev Account Details
+        run: |
+          az account show --output table
+  Hub_Deployment:
+    name: Hub Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Show Dev Account Details
+        run: |
+          echo "The current directory is $PWD and it's contents are:"
+          ls -al
+
