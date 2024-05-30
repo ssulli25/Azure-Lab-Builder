@@ -19,7 +19,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.SLS_EXTERNAL_SUBSCRIPTIONS_GITHUB }}
       - name: Push Version Tag
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
