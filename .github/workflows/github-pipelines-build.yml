@@ -2,6 +2,8 @@
 on:
   # Triggers the workflow on push request events
   push:
+    branches-ignore:
+      - 'tags/*'
 
 env:
   majorVersion: '24'
