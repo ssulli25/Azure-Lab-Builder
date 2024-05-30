@@ -19,21 +19,21 @@ jobs:
       - name: Login to Azure - Hub
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_HUB }}
+          creds: ${{ secrets.AZ_SP_HUB }}
       - name: Show Hub Account Details
         run: |
           az account show --output table
       - name: Login to Azure - Prod
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_PROD }}
+          creds: ${{ secrets.AZ_SP_PROD }}
       - name: Show Prod Account Details
         run: |
           az account show --output table
       - name: Login to Azure - Dev
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS_DEV }}
+          creds: ${{ secrets.AZ_SP_DEV }}
       - name: Show Dev Account Details
         run: |
           az account show --output table
