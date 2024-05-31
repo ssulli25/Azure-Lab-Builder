@@ -40,6 +40,7 @@ jobs:
           IFS=',' read -ra ENV_LIST <<< "${azEnvironments}"
           for env in "${ENV_LIST[@]}"; do
             echo "##### Validating Terraform for $env #####"
+            ls -al
             cd "terraform/$env"
             export ARM_BACKEND_CONTAINER_NAME="sls-terraform-state-$env"
             export ARM_BACKEND_KEY="$env.tfstate"
