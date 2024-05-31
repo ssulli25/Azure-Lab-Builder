@@ -35,19 +35,28 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: ${{ env.Terraform_Version }}
-      - name: Validate Terraform
+      - name: Validate Terraform Hub
         run: |
-          IFS=',' read -ra ENV_LIST <<< "${azEnvironments}"
-          for env in "${ENV_LIST[@]}"; do
-            echo "##### Validating Terraform for $env #####"
-            ls -al
-            cd "terraform/$env"
-            export ARM_BACKEND_CONTAINER_NAME="sls-terraform-state-$env"
-            export ARM_BACKEND_KEY="$env.tfstate"
-            terraform -v
-            terraform init -backend=false
-            terraform validate
-          done
+          echo "##### Validating Terraform for Hub #####"
+          cd "terraform/hub"
+          terraform -v
+          terraform init -backend=false
+          terraform validate
+      - name: Validate Terraform Dev
+        run: |
+          echo "##### Validating Terraform for Dev #####"
+          cd "terraform/dev"
+          terraform -v
+          terraform init -backend=false
+          terraform validate
+      - name: Validate Terraform Prod
+        run: |
+          echo "##### Validating Terraform for Prod #####"
+          cd "terraform/prod"
+          terraform -v
+          terraform init -backend=false
+          terraform validate
+  
 
   Tag_Commit_with_Version:
     name: Tag Commit with Version
