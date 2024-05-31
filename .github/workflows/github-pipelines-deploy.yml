@@ -22,10 +22,13 @@ jobs:
           creds: ${{ secrets.AZ_SP_HUB }}
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: Show Default Directory
+      - name: Terraform Init and Plan
         run: |
-          echo "The current directory is $PWD and it's contents are:"
-          ls -al
+          cd "terraform/hub"
+          export ARM_BACKEND_CONTAINER_NAME="sls-terraform-state-hub"
+          export ARM_BACKEND_KEY="hub.tfstate"
+          terraform init
+          terraform plan
       - name: Login to Azure - Prod
         uses: azure/login@v1
         with:
