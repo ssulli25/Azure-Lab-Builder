@@ -12,38 +12,37 @@ name: deploy.beta.1
 
 # Deploy pipeline jobs
 jobs:
-  Pre_Deployment_Validation:
-    name: Pre-Deployment Validation
+  Hub_Deployment:
+    name: Hub Deployment
     runs-on: ubuntu-latest
     steps:
       - name: Login to Azure - Hub
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZ_SP_HUB }}
-      - name: Show Hub Account Details
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Show Default Directory
         run: |
-          az account show --output table
+          echo "The current directory is $PWD and it's contents are:"
+          ls -al
       - name: Login to Azure - Prod
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZ_SP_PROD }}
-      - name: Show Prod Account Details
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Show Default Directory
         run: |
-          az account show --output table
+          echo "The current directory is $PWD and it's contents are:"
+          ls -al
       - name: Login to Azure - Dev
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZ_SP_DEV }}
-      - name: Show Dev Account Details
-        run: |
-          az account show --output table
-  Hub_Deployment:
-    name: Hub Deployment
-    runs-on: ubuntu-latest
-    steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: Show Dev Account Details
+      - name: Show Default Directory
         run: |
           echo "The current directory is $PWD and it's contents are:"
           ls -al
