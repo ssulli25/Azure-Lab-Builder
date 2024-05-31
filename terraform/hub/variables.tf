@@ -49,3 +49,10 @@ variable "VngType" {
 variable "VngVpnType" {
   default = "RouteBased"
 }
+
+##### Sensitive Variables #####
+
+variable "SubscriptionId" {
+  description = "The Subscription ID for the environment"
+  type        = string
+}
