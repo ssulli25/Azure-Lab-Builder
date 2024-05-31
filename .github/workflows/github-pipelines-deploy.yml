@@ -25,10 +25,11 @@ jobs:
       - name: Terraform Init and Plan
         run: |
           cd "terraform/hub"
-          export ARM_BACKEND_CONTAINER_NAME="sls-terraform-state-hub"
-          export ARM_BACKEND_KEY="hub.tfstate"
           terraform init
           terraform plan
+        env:
+          ARM_BACKEND_CONTAINER_NAME: sls-terraform-state-hub
+          ARM_BACKEND_KEY: hub.tfstate
       - name: Login to Azure - Prod
         uses: azure/login@v1
         with:
