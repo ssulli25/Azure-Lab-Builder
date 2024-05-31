@@ -30,6 +30,7 @@ jobs:
         env:
           ARM_BACKEND_CONTAINER_NAME: sls-terraform-state-hub
           ARM_BACKEND_KEY: hub.tfstate
+          ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
       - name: Login to Azure - Prod
         uses: azure/login@v1
         with:
