@@ -46,6 +46,7 @@ jobs:
           ARM_CONTAINER_NAME: ${{ secrets.HUB_CONTAINER_NAME }}
   Hub_Deployment:
     name: Hub Deployment
+    needs: Hub_Verificatiion
     runs-on: ubuntu-latest
     # environment: 
     #   name: 'hub'
@@ -70,6 +71,7 @@ jobs:
             }
           }
           EOL
+          terraform init
           terraform apply -auto-approve
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
@@ -77,73 +79,9 @@ jobs:
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: ${{ secrets.HUB_CONTAINER_NAME }}
-  Prod_Verificatiion:
-    name: Prod Pre-Verification
-    runs-on: ubuntu-latest
-    steps:
-      - name: Login to Azure - Prod
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZ_SP_PROD }}
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-      - name: Terraform Prod - Setup Backend, Initialize, and Plan
-        run: |
-          cd "terraform/prod"
-          cat >backend.tf <<EOL
-          terraform {
-            backend "azurerm" {
-              subscription_id      = "$ARM_SUBSCRIPTION_ID"
-              resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
-              storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
-              container_name       = "$ARM_CONTAINER_NAME"
-              key                  = "prod.tfstate"
-            }
-          }
-          EOL
-          terraform init
-          terraform plan
-        env:
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
-          ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
-          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
-          ARM_CONTAINER_NAME: ${{ secrets.PROD_CONTAINER_NAME }}
-  Prod_Deployment:
-    name: Prod Deployment
-    runs-on: ubuntu-latest
-    # environment: 
-    #   name: 'prod'
-    steps:
-      - name: Login to Azure - Prod
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZ_SP_PROD }}
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-      - name: Terraform Prod - Setup Backend and Apply
-        run: |
-          cd "terraform/prod"
-          cat >backend.tf <<EOL
-          terraform {
-            backend "azurerm" {
-              subscription_id      = "$ARM_SUBSCRIPTION_ID"
-              resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
-              storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
-              container_name       = "$ARM_CONTAINER_NAME"
-              key                  = "hub.tfstate"
-            }
-          }
-          EOL
-          terraform apply -auto-approve
-        env:
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
-          ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
-          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
-          ARM_CONTAINER_NAME: ${{ secrets.PROD_CONTAINER_NAME }}
   Dev_Verificatiion:
     name: Dev Pre-Verification
+    needs: Hub_Deployment
     runs-on: ubuntu-latest
     steps:
       - name: Login to Azure - Dev
@@ -176,6 +114,7 @@ jobs:
           ARM_CONTAINER_NAME: ${{ secrets.DEV_CONTAINER_NAME }}
   Dev_Deployment:
     name: Dev Deployment
+    needs: Dev_Verificatiion
     runs-on: ubuntu-latest
     # environment: 
     #   name: 'dev'
@@ -200,6 +139,7 @@ jobs:
             }
           }
           EOL
+          terraform init
           terraform apply -auto-approve
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
@@ -207,4 +147,72 @@ jobs:
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: ${{ secrets.DEV_CONTAINER_NAME }}
+  Prod_Verificatiion:
+    name: Prod Pre-Verification
+    needs: Dev_Deployment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to Azure - Prod
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZ_SP_PROD }}
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Terraform Prod - Setup Backend, Initialize, and Plan
+        run: |
+          cd "terraform/prod"
+          cat >backend.tf <<EOL
+          terraform {
+            backend "azurerm" {
+              subscription_id      = "$ARM_SUBSCRIPTION_ID"
+              resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
+              storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
+              container_name       = "$ARM_CONTAINER_NAME"
+              key                  = "prod.tfstate"
+            }
+          }
+          EOL
+          terraform init
+          terraform plan
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
+          ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
+          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+          ARM_CONTAINER_NAME: ${{ secrets.PROD_CONTAINER_NAME }}
+  Prod_Deployment:
+    name: Prod Deployment
+    needs: Prod_Verificatiion
+    runs-on: ubuntu-latest
+    # environment: 
+    #   name: 'prod'
+    steps:
+      - name: Login to Azure - Prod
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZ_SP_PROD }}
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Terraform Prod - Setup Backend and Apply
+        run: |
+          cd "terraform/prod"
+          cat >backend.tf <<EOL
+          terraform {
+            backend "azurerm" {
+              subscription_id      = "$ARM_SUBSCRIPTION_ID"
+              resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
+              storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
+              container_name       = "$ARM_CONTAINER_NAME"
+              key                  = "hub.tfstate"
+            }
+          }
+          EOL
+          terraform init
+          terraform apply -auto-approve
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
+          ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
+          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+          ARM_CONTAINER_NAME: ${{ secrets.PROD_CONTAINER_NAME }}
 
