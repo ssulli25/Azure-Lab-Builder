@@ -2,10 +2,6 @@ variable "AdminUsername" {
   default = "adminuser"
 }
 
-variable "AdminPassword" {
-  default = "HolderPa$$4Lab"
-}
-
 variable "AppVmName" {
   default = "app-dev-vm1"
 }
@@ -45,3 +41,16 @@ variable "WorkloadSubnetName" {
 variable "WorkloadSubnetPrefix" {
   default = ["172.20.1.0/24"]
 }
+
+##### Sensitive Variables #####
+
+variable "AdminPassword" {
+  description = "The Password of the Dev VM"
+  type        = string
+}
+
+variable "SubscriptionId" {
+  description = "The Subscription ID for the environment"
+  type        = string
+}
+
