@@ -49,7 +49,12 @@ variable "AdminPassword" {
   type        = string
 }
 
-variable "SubscriptionId" {
-  description = "The Subscription ID for the environment"
+variable "ProdSubscriptionId" {
+  description = "The Subscription ID for the Prod environment"
+  type        = string
+}
+
+variable "HubSubscriptionId" {
+  description = "The Subscription ID for the Hub environment"
   type        = string
 }

@@ -3,6 +3,7 @@
 #======#
 
 data "azurerm_virtual_network" "hub" {
+  provider            = azurerm.hub
   name                = var.HubVnet
   resource_group_name = var.HubRg
 }

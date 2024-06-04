@@ -33,7 +33,7 @@ jobs:
           }
           EOL
           terraform init
-          terraform plan -var="SubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
+          terraform plan -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" 
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -71,7 +71,7 @@ jobs:
           }
           EOL
           terraform init
-          terraform apply -auto-approve -var="SubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
+          terraform apply -auto-approve -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -107,7 +107,7 @@ jobs:
           }
           EOL
           terraform init
-          terraform plan -var="SubscriptionId=${{ secrets.DEV_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
+          terraform plan -var="DevSubscriptionId=${{ secrets.DEV_SUBSCRIPTION_ID }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -145,7 +145,7 @@ jobs:
           }
           EOL
           terraform init
-          terraform apply -auto-approve -var="SubscriptionId=${{ secrets.DEV_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
+          terraform apply -auto-approve -var="DevSubscriptionId=${{ secrets.DEV_SUBSCRIPTION_ID }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -181,7 +181,7 @@ jobs:
           }
           EOL
           terraform init
-          terraform plan -var="SubscriptionId=${{ secrets.PROD_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
+          terraform plan -var="ProdSubscriptionId=${{ secrets.PROD_SUBSCRIPTION_ID }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -219,7 +219,7 @@ jobs:
           }
           EOL
           terraform init
-          terraform apply -auto-approve -var="SubscriptionId=${{ secrets.PROD_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
+          terraform apply -auto-approve -var="ProdSubscriptionId=${{ secrets.PROD_SUBSCRIPTION_ID }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 

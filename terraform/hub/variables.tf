@@ -52,7 +52,7 @@ variable "VngVpnType" {
 
 ##### Sensitive Variables #####
 
-variable "SubscriptionId" {
+variable "HubSubscriptionId" {
   description = "The Subscription ID for the environment"
   type        = string
 }

@@ -10,8 +10,16 @@ terraform {
   }
 }
 
+### Primary provider for resources
 provider "azurerm" {
-  subscription_id = var.SubscriptionId
+  subscription_id = var.ProdSubscriptionId
   features {
   }
+}
+
+### Secondary provider for resources in hub subscription
+provider "azurerm" {
+  alias           = "hub"
+  subscription_id = var.HubSubscriptionId
+  features {}
 }
