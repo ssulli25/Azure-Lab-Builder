@@ -45,7 +45,7 @@ variable "WorkloadSubnetPrefix" {
 ##### Sensitive Variables #####
 
 variable "AdminPassword" {
-  description = "The Password of the Dev VM"
+  description = "The Password of the Prod VM"
   type        = string
 }
 

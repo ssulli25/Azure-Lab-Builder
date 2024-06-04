@@ -41,7 +41,7 @@ jobs:
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: ${{ secrets.HUB_CONTAINER_NAME }}
           HUB_SUBSCRIPTION_ID: ${{ secrets.HUB_SUBSCRIPTION_ID }}
-          VM_ADMIN_PASSWORD: ${{ secrets.VM_ADMIN_PASSWORD }}
+          VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
 
   Hub_Deployment:
     name: Hub Deployment
@@ -79,7 +79,7 @@ jobs:
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: ${{ secrets.HUB_CONTAINER_NAME }}
           HUB_SUBSCRIPTION_ID: ${{ secrets.HUB_SUBSCRIPTION_ID }}
-          VM_ADMIN_PASSWORD: ${{ secrets.VM_ADMIN_PASSWORD }}
+          VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
 
   Dev_Verificatiion:
     name: Dev Pre-Verification
@@ -107,7 +107,7 @@ jobs:
           }
           EOL
           terraform init
-          terraform plan -var="SubscriptionId=${{ secrets.DEV_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_PASSWORD }}"
+          terraform plan -var="SubscriptionId=${{ secrets.DEV_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -115,7 +115,7 @@ jobs:
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: ${{ secrets.DEV_CONTAINER_NAME }}
           DEV_SUBSCRIPTION_ID: ${{ secrets.DEV_SUBSCRIPTION_ID }}
-          VM_ADMIN_PASSWORD: ${{ secrets.VM_ADMIN_PASSWORD }}
+          VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
 
   Dev_Deployment:
     name: Dev Deployment
@@ -145,7 +145,7 @@ jobs:
           }
           EOL
           terraform init
-          terraform apply -auto-approve -var="SubscriptionId=${{ secrets.DEV_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_PASSWORD }}"
+          terraform apply -auto-approve -var="SubscriptionId=${{ secrets.DEV_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -153,7 +153,7 @@ jobs:
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: ${{ secrets.DEV_CONTAINER_NAME }}
           DEV_SUBSCRIPTION_ID: ${{ secrets.DEV_SUBSCRIPTION_ID }}
-          VM_ADMIN_PASSWORD: ${{ secrets.VM_ADMIN_PASSWORD }}
+          VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
 
   Prod_Verificatiion:
     name: Prod Pre-Verification
@@ -181,7 +181,7 @@ jobs:
           }
           EOL
           terraform init
-          terraform plan -var="SubscriptionId=${{ secrets.PROD_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_PASSWORD }}"
+          terraform plan -var="SubscriptionId=${{ secrets.PROD_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -189,7 +189,7 @@ jobs:
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: ${{ secrets.PROD_CONTAINER_NAME }}
           PROD_SUBSCRIPTION_ID: ${{ secrets.PROD_SUBSCRIPTION_ID }}
-          VM_ADMIN_PASSWORD: ${{ secrets.VM_ADMIN_PASSWORD }}
+          VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
 
   Prod_Deployment:
     name: Prod Deployment
@@ -219,7 +219,7 @@ jobs:
           }
           EOL
           terraform init
-          terraform apply -auto-approve -var="SubscriptionId=${{ secrets.PROD_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_PASSWORD }}"
+          terraform apply -auto-approve -var="SubscriptionId=${{ secrets.PROD_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -227,5 +227,5 @@ jobs:
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: ${{ secrets.PROD_CONTAINER_NAME }}
           PROD_SUBSCRIPTION_ID: ${{ secrets.PROD_SUBSCRIPTION_ID }}
-          VM_ADMIN_PASSWORD: ${{ secrets.VM_ADMIN_PASSWORD }}
+          VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
 
