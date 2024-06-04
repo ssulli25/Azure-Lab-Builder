@@ -70,12 +70,15 @@ jobs:
           git config --global user.name "github-actions[bot]"
           
           ### Set the ENDTAG based on the branch, it will be appended to the tag
+          BRANCH_NAME=${{ github.ref_name }}
+          BRANCH_NAME=${BRANCH_NAME//_/-}
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "ENDTAG=" >> $GITHUB_ENV
           elif [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
             echo "ENDTAG=-release" >> $GITHUB_ENV
           else
-            echo "ENDTAG=-${{ github.ref_name//_/- }}" >> $GITHUB_ENV
+            echo "ENDTAG=-$BRANCH_NAME" >> $GITHUB_ENV
+          fi
       
           git tag "${{env.majorVersion}}.${{env.minorVersion}}.${{github.run_number}}${{env.ENDTAG}}"
           git push --tags
