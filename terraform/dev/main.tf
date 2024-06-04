@@ -40,6 +40,7 @@ resource "azurerm_subnet" "workload" {
 }
 
 resource "azurerm_virtual_network_peering" "hub_to_spoke" {
+  provider                     = azurerm.hub
   name                         = "hub-to-spoke-dev"
   resource_group_name          = var.HubRg
   virtual_network_name         = data.azurerm_virtual_network.hub.name
