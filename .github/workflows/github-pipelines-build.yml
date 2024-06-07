@@ -68,7 +68,7 @@ jobs:
           BRANCH_NAME=${BRANCH_NAME//_/-}
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "ENDTAG=" >> $GITHUB_ENV
-          elif [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
+          elif [[ "${{ github.ref }}" =~ refs/heads/release/* ]]; then
             echo "ENDTAG=-release" >> $GITHUB_ENV
           else
             echo "ENDTAG=-$BRANCH_NAME" >> $GITHUB_ENV
