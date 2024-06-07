@@ -74,6 +74,8 @@ jobs:
           else
             ENDTAG="-$BRANCH_NAME"
           fi
+
+          #Test 1
         
           git tag "${{env.majorVersion}}.${{env.minorVersion}}.${{github.run_number}}${ENDTAG}"
           git push --tags
