@@ -91,7 +91,6 @@ jobs:
   App_Verification:
     if: ${{ needs.Hub_Deployment.outputs.run == 'true' || github.event.inputs.hub != 'true' }}
     name: ${{ inputs.environment }} Pre-Verification
-    needs: Hub_Deployment
     runs-on: ubuntu-latest
     steps:
       - name: Set secret names
