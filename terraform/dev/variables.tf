@@ -53,13 +53,13 @@ variable "AdminPassword" {
   type        = string
 }
 
-variable "DevSubscriptionId" {
-  description = "The Subscription ID for the Dev environment"
+variable "SubscriptionId" {
+  description = "The Subscription ID for the given environment"
   type        = string
 }
 
 variable "HubSubscriptionId" {
-  description = "The Subscription ID for the Hub environment"
+  description = "The Subscription ID for the Hub environment (if applicable)"
   type        = string
 }
 
