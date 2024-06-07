@@ -66,9 +66,9 @@ jobs:
           ### Set the ENDTAG based on the branch, it will be appended to the tag
           BRANCH_NAME=${{ github.ref_name }}
           BRANCH_NAME=${BRANCH_NAME//_/-}
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          if [[ "${{ github.head_ref }}" == "main" ]]; then
             echo "ENDTAG=" >> $GITHUB_ENV
-          elif [[ "${{ github.ref }}" =~ ^refs/heads/release/ ]]; then
+          elif [[ "${{ github.head_ref }}" =~ ^release/ ]]; then
             echo "ENDTAG=-release" >> $GITHUB_ENV
           else
             echo "ENDTAG=-$BRANCH_NAME" >> $GITHUB_ENV
