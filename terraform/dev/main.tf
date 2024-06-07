@@ -45,7 +45,7 @@ resource "azurerm_virtual_network_peering" "hub_to_spoke" {
   provider                     = azurerm.hub
   name                         = "hub-to-spoke-dev"
   resource_group_name          = var.HubRg
-  virtual_network_name         = data.azurerm_virtual_network.hub.name
+  virtual_network_name         = data.azurerm_virtual_network.hub[0].name
   remote_virtual_network_id    = azurerm_virtual_network.vnet.id
   allow_virtual_network_access = true
 }
@@ -54,7 +54,7 @@ resource "azurerm_virtual_network_peering" "spoke_to_hub" {
   count                        = var.HubEnabled ? 1 : 0
   name                         = "spoke-dev-to-hub"
   resource_group_name          = azurerm_resource_group.rg.name
-  virtual_network_name         = azurerm_virtual_network.vnet.name
+  virtual_network_name         = azurerm_virtual_network.vnet[0].name
   remote_virtual_network_id    = data.azurerm_virtual_network.hub.id
   allow_virtual_network_access = true
 }
