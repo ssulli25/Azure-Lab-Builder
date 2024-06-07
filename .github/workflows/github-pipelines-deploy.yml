@@ -90,7 +90,7 @@ jobs:
 
   App_Verification:
     if: ${{ needs.Hub_Deployment.outputs.run == 'true' || github.event.inputs.hub != 'true' }}
-    name: ${{ inputs.environment }} Pre-Verification
+    name: Pre-Verification - ${{ inputs.environment }}
     runs-on: ubuntu-latest
     steps:
       - name: Set secret names
@@ -119,11 +119,12 @@ jobs:
             }
           }
           EOL
+          cat backend.tf
           terraform init
           terraform plan -var="${{ github.event.inputs.environment }}SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=${{ github.event.inputs.hub }}"
 
   App_Deployment:
-    name: ${{ github.event.inputs.environment }} Deployment
+    name: Deployment - ${{ inputs.environment }}
     needs: App_Verification
     runs-on: ubuntu-latest
     steps:
