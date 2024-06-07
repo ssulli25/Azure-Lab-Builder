@@ -2,13 +2,22 @@
 on:
   # This event allows you to trigger the workflow manually from the GitHub Actions tab in your repository.
   workflow_dispatch:
-
+    inputs:
+      environment:
+        description: 'What is the name of environment to deploy?'
+        required: true
+        default: 'dev'
+      hub:
+        description: 'Is a hub deployment needed?'
+        required: true
+        default: 'true'
 # Name of deploy pipeline
 name: deploy.beta.1
 
 # Deploy pipeline jobs
 jobs:
   Hub_Verificatiion:
+    if: ${{ github.event.inputs.hub == 'true' }}
     name: Hub Pre-Verification
     runs-on: ubuntu-latest
     steps:
@@ -44,6 +53,7 @@ jobs:
           VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
 
   Hub_Deployment:
+    if: ${{ github.event.inputs.hub == 'true' }}
     name: Hub Deployment
     needs: Hub_Verificatiion
     runs-on: ubuntu-latest
@@ -81,20 +91,20 @@ jobs:
           HUB_SUBSCRIPTION_ID: ${{ secrets.HUB_SUBSCRIPTION_ID }}
           VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
 
-  Dev_Verificatiion:
-    name: Dev Pre-Verification
+  App_Verification:
+    name: ${{ github.event.inputs.environment }} Pre-Verification
     needs: Hub_Deployment
     runs-on: ubuntu-latest
     steps:
-      - name: Login to Azure - Dev
+      - name: Login to Azure
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZ_SP_DEV }}
+          creds: ${{ secrets['AZ_SP_' + github.event.inputs.environment] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: Terraform Dev - Setup Backend, Initialize, and Plan
+      - name: Terraform - Setup Backend, Initialize, and Plan
         run: |
-          cd "terraform/dev"
+          cd "terraform/${{ github.event.inputs.environment }}"
           cat >backend.tf <<EOL
           terraform {
             backend "azurerm" {
@@ -102,37 +112,35 @@ jobs:
               resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
               storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
               container_name       = "$ARM_CONTAINER_NAME"
-              key                  = "dev.tfstate"
+              key                  = "${{ github.event.inputs.environment }}.tfstate"
             }
           }
           EOL
           terraform init
-          terraform plan -var="DevSubscriptionId=${{ secrets.DEV_SUBSCRIPTION_ID }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
+          terraform plan -var="${{ github.event.inputs.environment }}SubscriptionId=${{ secrets[github.event.inputs.environment + '_SUBSCRIPTION_ID'] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=${{ github.event.inputs.hub }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
-          ARM_CONTAINER_NAME: ${{ secrets.DEV_CONTAINER_NAME }}
-          DEV_SUBSCRIPTION_ID: ${{ secrets.DEV_SUBSCRIPTION_ID }}
+          ARM_CONTAINER_NAME: ${{ secrets[github.event.inputs.environment + '_CONTAINER_NAME'] }}
+          DEV_SUBSCRIPTION_ID: ${{ secrets[github.event.inputs.environment + '_SUBSCRIPTION_ID'] }}
           VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
 
-  Dev_Deployment:
-    name: Dev Deployment
-    needs: Dev_Verificatiion
+  App_Deployment:
+    name: ${{ github.event.inputs.environment }} Deployment
+    needs: App_Verification
     runs-on: ubuntu-latest
-    # environment: 
-    #   name: 'dev'
     steps:
-      - name: Login to Azure - Dev
+      - name: Login to Azure
         uses: azure/login@v1
         with:
-          creds: ${{ secrets.AZ_SP_DEV }}
+          creds: ${{ secrets['AZ_SP_' + github.event.inputs.environment] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: Terraform Dev - Setup Backend and Apply
+      - name: Terraform - Setup Backend and Apply
         run: |
-          cd "terraform/dev"
+          cd "terraform/${{ github.event.inputs.environment }}"
           cat >backend.tf <<EOL
           terraform {
             backend "azurerm" {
@@ -140,92 +148,92 @@ jobs:
               resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
               storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
               container_name       = "$ARM_CONTAINER_NAME"
-              key                  = "hub.tfstate"
+              key                  = "${{ github.event.inputs.environment }}.tfstate"
             }
           }
           EOL
           terraform init
-          terraform apply -auto-approve -var="DevSubscriptionId=${{ secrets.DEV_SUBSCRIPTION_ID }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
+          terraform apply -auto-approve -var="${{ github.event.inputs.environment }}SubscriptionId=${{ secrets[github.event.inputs.environment + '_SUBSCRIPTION_ID'] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=${{ github.event.inputs.hub }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
-          ARM_CONTAINER_NAME: ${{ secrets.DEV_CONTAINER_NAME }}
-          DEV_SUBSCRIPTION_ID: ${{ secrets.DEV_SUBSCRIPTION_ID }}
+          ARM_CONTAINER_NAME: ${{ secrets[github.event.inputs.environment + '_CONTAINER_NAME'] }}
+          DEV_SUBSCRIPTION_ID: ${{ secrets[github.event.inputs.environment + '_SUBSCRIPTION_ID'] }}
           VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
 
-  Prod_Verificatiion:
-    name: Prod Pre-Verification
-    needs: Dev_Deployment
-    runs-on: ubuntu-latest
-    steps:
-      - name: Login to Azure - Prod
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZ_SP_PROD }}
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-      - name: Terraform Prod - Setup Backend, Initialize, and Plan
-        run: |
-          cd "terraform/prod"
-          cat >backend.tf <<EOL
-          terraform {
-            backend "azurerm" {
-              subscription_id      = "$ARM_SUBSCRIPTION_ID"
-              resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
-              storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
-              container_name       = "$ARM_CONTAINER_NAME"
-              key                  = "prod.tfstate"
-            }
-          }
-          EOL
-          terraform init
-          terraform plan -var="ProdSubscriptionId=${{ secrets.PROD_SUBSCRIPTION_ID }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
-        env:
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
-          ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
-          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
-          ARM_CONTAINER_NAME: ${{ secrets.PROD_CONTAINER_NAME }}
-          PROD_SUBSCRIPTION_ID: ${{ secrets.PROD_SUBSCRIPTION_ID }}
-          VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
+  # Prod_Verificatiion:
+  #   name: Prod Pre-Verification
+  #   needs: Dev_Deployment
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Login to Azure - Prod
+  #       uses: azure/login@v1
+  #       with:
+  #         creds: ${{ secrets.AZ_SP_PROD }}
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v2
+  #     - name: Terraform Prod - Setup Backend, Initialize, and Plan
+  #       run: |
+  #         cd "terraform/prod"
+  #         cat >backend.tf <<EOL
+  #         terraform {
+  #           backend "azurerm" {
+  #             subscription_id      = "$ARM_SUBSCRIPTION_ID"
+  #             resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
+  #             storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
+  #             container_name       = "$ARM_CONTAINER_NAME"
+  #             key                  = "prod.tfstate"
+  #           }
+  #         }
+  #         EOL
+  #         terraform init
+  #         terraform plan -var="ProdSubscriptionId=${{ secrets.PROD_SUBSCRIPTION_ID }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
+  #       env:
+  #         ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  #         ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
+  #         ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
+  #         ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+  #         ARM_CONTAINER_NAME: ${{ secrets.PROD_CONTAINER_NAME }}
+  #         PROD_SUBSCRIPTION_ID: ${{ secrets.PROD_SUBSCRIPTION_ID }}
+  #         VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
 
-  Prod_Deployment:
-    name: Prod Deployment
-    needs: Prod_Verificatiion
-    runs-on: ubuntu-latest
-    # environment: 
-    #   name: 'prod'
-    steps:
-      - name: Login to Azure - Prod
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZ_SP_PROD }}
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-      - name: Terraform Prod - Setup Backend and Apply
-        run: |
-          cd "terraform/prod"
-          cat >backend.tf <<EOL
-          terraform {
-            backend "azurerm" {
-              subscription_id      = "$ARM_SUBSCRIPTION_ID"
-              resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
-              storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
-              container_name       = "$ARM_CONTAINER_NAME"
-              key                  = "hub.tfstate"
-            }
-          }
-          EOL
-          terraform init
-          terraform apply -auto-approve -var="ProdSubscriptionId=${{ secrets.PROD_SUBSCRIPTION_ID }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
-        env:
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
-          ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
-          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
-          ARM_CONTAINER_NAME: ${{ secrets.PROD_CONTAINER_NAME }}
-          PROD_SUBSCRIPTION_ID: ${{ secrets.PROD_SUBSCRIPTION_ID }}
-          VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
+  # Prod_Deployment:
+  #   name: Prod Deployment
+  #   needs: Prod_Verificatiion
+  #   runs-on: ubuntu-latest
+  #   # environment: 
+  #   #   name: 'prod'
+  #   steps:
+  #     - name: Login to Azure - Prod
+  #       uses: azure/login@v1
+  #       with:
+  #         creds: ${{ secrets.AZ_SP_PROD }}
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v2
+  #     - name: Terraform Prod - Setup Backend and Apply
+  #       run: |
+  #         cd "terraform/prod"
+  #         cat >backend.tf <<EOL
+  #         terraform {
+  #           backend "azurerm" {
+  #             subscription_id      = "$ARM_SUBSCRIPTION_ID"
+  #             resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
+  #             storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
+  #             container_name       = "$ARM_CONTAINER_NAME"
+  #             key                  = "prod.tfstate"
+  #           }
+  #         }
+  #         EOL
+  #         terraform init
+  #         terraform apply -auto-approve -var="ProdSubscriptionId=${{ secrets.PROD_SUBSCRIPTION_ID }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}"
+  #       env:
+  #         ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+  #         ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
+  #         ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
+  #         ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+  #         ARM_CONTAINER_NAME: ${{ secrets.PROD_CONTAINER_NAME }}
+  #         PROD_SUBSCRIPTION_ID: ${{ secrets.PROD_SUBSCRIPTION_ID }}
+  #         VM_ADMIN_CREDENTIALS: ${{ secrets.VM_ADMIN_CREDENTIALS }}
 

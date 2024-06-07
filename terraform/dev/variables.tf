@@ -10,6 +10,10 @@ variable "AppVmSize" {
   default = "Standard_B2ms"
 }
 
+variable "HubEnabled" {
+  type = bool
+}
+
 variable "HubRg" {
   default = "hub-rg"
 }

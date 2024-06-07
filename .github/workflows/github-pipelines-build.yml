@@ -34,25 +34,19 @@ jobs:
         uses: actions/checkout@v2
       - name: Validate Terraform Hub
         run: |
-          echo "##### Validating Terraform for Hub #####"
+          echo "##### Validating Terraform for Hub Code #####"
           cd "terraform/hub"
           terraform -v
           terraform init -backend=false
           terraform validate
-      - name: Validate Terraform Dev
+      - name: Validate Terraform Application
         run: |
-          echo "##### Validating Terraform for Dev #####"
+          echo "##### Validating Terraform for Application Code #####"
           cd "terraform/dev"
           terraform -v
           terraform init -backend=false
           terraform validate
-      - name: Validate Terraform Prod
-        run: |
-          echo "##### Validating Terraform for Prod #####"
-          cd "terraform/prod"
-          terraform -v
-          terraform init -backend=false
-          terraform validate
+### Update folder above after testing.
   
 
   Tag_Commit_with_Version:

@@ -3,6 +3,7 @@
 #======#
 
 data "azurerm_virtual_network" "hub" {
+  count               = var.HubEnabled ? 1 : 0
   provider            = azurerm.hub
   name                = var.HubVnet
   resource_group_name = var.HubRg
@@ -40,6 +41,7 @@ resource "azurerm_subnet" "workload" {
 }
 
 resource "azurerm_virtual_network_peering" "hub_to_spoke" {
+  count                        = var.HubEnabled ? 1 : 0
   provider                     = azurerm.hub
   name                         = "hub-to-spoke-dev"
   resource_group_name          = var.HubRg
@@ -49,6 +51,7 @@ resource "azurerm_virtual_network_peering" "hub_to_spoke" {
 }
 
 resource "azurerm_virtual_network_peering" "spoke_to_hub" {
+  count                        = var.HubEnabled ? 1 : 0
   name                         = "spoke-dev-to-hub"
   resource_group_name          = azurerm_resource_group.rg.name
   virtual_network_name         = azurerm_virtual_network.vnet.name
