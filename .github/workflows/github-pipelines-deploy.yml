@@ -39,16 +39,22 @@ jobs:
           cat >backend.tf <<EOL
           terraform {
             backend "azurerm" {
-              subscription_id      = "${{ secrets.ARM_SUBSCRIPTION_ID }}"
-              resource_group_name  = "${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }}"
-              storage_account_name = "${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}"
-              container_name       = "${{ secrets[env.CONTAINER_NAME_SECRET_NAME] }}"
+              subscription_id      = "$ARM_SUBSCRIPTION_ID"
+              resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
+              storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
+              container_name       = "$ARM_CONTAINER_NAME"
               key                  = "hub.tfstate"
             }
           }
           EOL
           terraform init
-          terraform plan -var="HubSubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}"
+          terraform plan -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" 
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
+          ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
+          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+          ARM_CONTAINER_NAME: ${{ secrets.HUB_CONTAINER_NAME }}
 
   Hub_Deployment:
     if: ${{ github.event.inputs.hub == 'true' }}
@@ -74,16 +80,22 @@ jobs:
           cat >backend.tf <<EOL
           terraform {
             backend "azurerm" {
-              subscription_id      = "${{ secrets.ARM_SUBSCRIPTION_ID }}"
-              resource_group_name  = "${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }}"
-              storage_account_name = "${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}"
-              container_name       = "${{ secrets[env.CONTAINER_NAME_SECRET_NAME] }}"
+              subscription_id      = "$ARM_SUBSCRIPTION_ID"
+              resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
+              storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
+              container_name       = "$ARM_CONTAINER_NAME"
               key                  = "hub.tfstate"
             }
           }
           EOL
           terraform init
-          terraform apply -auto-approve -var="HubSubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}"
+          terraform apply -auto-approve -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
+          ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
+          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+          ARM_CONTAINER_NAME: ${{ secrets.HUB_CONTAINER_NAME }}
       - name: Set output
         id: deployment_output
         run: echo "::set-output name=run::true"
@@ -107,21 +119,26 @@ jobs:
         uses: actions/checkout@v2
       - name: Terraform - Setup Backend, Initialize, and Plan
         run: |
-          cd "terraform/${{ github.event.inputs.environment }}"
+          cd "terraform/dev"
           cat >backend.tf <<EOL
           terraform {
             backend "azurerm" {
-              subscription_id      = "${{ secrets.ARM_SUBSCRIPTION_ID }}"
-              resource_group_name  = "${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }}"
-              storage_account_name = "${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}"
-              container_name       = "${{ secrets[env.CONTAINER_NAME_SECRET_NAME] }}"
+              subscription_id      = "$ARM_SUBSCRIPTION_ID"
+              resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
+              storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
+              container_name       = "$ARM_CONTAINER_NAME"
               key                  = "${{ github.event.inputs.environment }}.tfstate"
             }
           }
           EOL
-          cat backend.tf
           terraform init
           terraform plan -var="${{ github.event.inputs.environment }}SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=${{ github.event.inputs.hub }}"
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
+          ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
+          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+          ARM_CONTAINER_NAME: ${{ secrets.DEV_CONTAINER_NAME }}
 
   App_Deployment:
     name: Deployment - ${{ inputs.environment }}
@@ -142,18 +159,24 @@ jobs:
         uses: actions/checkout@v2
       - name: Terraform - Setup Backend and Apply
         run: |
-          cd "terraform/${{ github.event.inputs.environment }}"
+          cd "terraform/dev"
           cat >backend.tf <<EOL
           terraform {
             backend "azurerm" {
-              subscription_id      = "${{ secrets.ARM_SUBSCRIPTION_ID }}"
-              resource_group_name  = "${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }}"
-              storage_account_name = "${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}"
-              container_name       = "${{ secrets[env.CONTAINER_NAME_SECRET_NAME] }}"
+              subscription_id      = "$ARM_SUBSCRIPTION_ID"
+              resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
+              storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
+              container_name       = "$ARM_CONTAINER_NAME"
               key                  = "${{ github.event.inputs.environment }}.tfstate"
             }
           }
           EOL
           terraform init
           terraform apply -auto-approve -var="${{ github.event.inputs.environment }}SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=${{ github.event.inputs.hub }}"
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
+          ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
+          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+          ARM_CONTAINER_NAME: ${{ secrets.DEV_CONTAINER_NAME }}
 
