@@ -66,14 +66,15 @@ jobs:
           ### Set the ENDTAG based on the branch, it will be appended to the tag
           BRANCH_NAME=${{ github.ref_name }}
           BRANCH_NAME=${BRANCH_NAME//_/-}
+          ENDTAG=""
           if [[ "${{ github.head_ref }}" == "main" ]]; then
-            echo "ENDTAG=" >> $GITHUB_ENV
+            ENDTAG=""
           elif [[ "${{ github.head_ref }}" =~ ^release/ ]]; then
-            echo "ENDTAG=-release" >> $GITHUB_ENV
+            ENDTAG="-release"
           else
-            echo "ENDTAG=-$BRANCH_NAME" >> $GITHUB_ENV
+            ENDTAG="-$BRANCH_NAME"
           fi
-      
-          git tag "${{env.majorVersion}}.${{env.minorVersion}}.${{github.run_number}}${{env.ENDTAG}}"
+        
+          git tag "${{env.majorVersion}}.${{env.minorVersion}}.${{github.run_number}}${ENDTAG}"
           git push --tags
 
