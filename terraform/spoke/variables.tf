@@ -23,7 +23,7 @@ variable "HubVnet" {
 }
 
 variable "Region" {
-  default = "eastus"
+  default = "eastus2"
 }
 
 variable "ResourceGroupName" {
