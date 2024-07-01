@@ -3,14 +3,23 @@ on:
   # This event allows you to trigger the workflow manually from the GitHub Actions tab in your repository.
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'What is the name of environment to deploy?'
-        required: true
-        default: 'dev'
       hub:
-        description: 'Is a hub deployment needed?'
+        description: 'Is a hub & spoke deployment needed?'
         required: true
         default: 'true'
+      spoke:
+        description: 'Is a stand alone environment needed (no hub, spoke only)?'
+        required: true
+        default: 'false'
+      spoke_model:
+        description: 'Is the spoke cloud service model IaaS or PaaS?'
+        required: true
+        default: 'IaaS'
+      environment:
+        description: 'What is the name of the spoke environment to deploy (for example: dev)?'
+        required: true
+        default: 'dev'
+
 # Name of deploy pipeline
 name: deploy.beta.1
 
@@ -100,9 +109,11 @@ jobs:
         id: deployment_output
         run: echo "::set-output name=run::true"
 
+### Spoke with Hub
   App_Verification:
-    if: ${{ needs.Hub_Deployment.outputs.run == 'true' || github.event.inputs.hub != 'true' }}
-    name: Pre-Verification - ${{ inputs.environment }}
+    if: ${{ github.event.inputs.hub == 'true' }}
+    name: Pre-Verification - ${{ inputs.environment }} environment
+    needs: Hub_Deployment
     runs-on: ubuntu-latest
     steps:
       - name: Set secret names
@@ -119,7 +130,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Terraform - Setup Backend, Initialize, and Plan
         run: |
-          cd "terraform/dev"
+          cd "terraform/spoke"
           cat >backend.tf <<EOL
           terraform {
             backend "azurerm" {
@@ -141,7 +152,8 @@ jobs:
           ARM_CONTAINER_NAME: ${{ secrets.DEV_CONTAINER_NAME }}
 
   App_Deployment:
-    name: Deployment - ${{ inputs.environment }}
+    if: ${{ github.event.inputs.hub == 'true' }}
+    name: Deployment - ${{ inputs.environment }} environment
     needs: App_Verification
     runs-on: ubuntu-latest
     steps:
@@ -159,7 +171,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Terraform - Setup Backend and Apply
         run: |
-          cd "terraform/dev"
+          cd "terraform/spoke"
           cat >backend.tf <<EOL
           terraform {
             backend "azurerm" {
@@ -179,4 +191,6 @@ jobs:
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: ${{ secrets.DEV_CONTAINER_NAME }}
+
+### Spoke without Hub - Future Release
 
