@@ -42,7 +42,7 @@ jobs:
       - name: Validate Terraform Application
         run: |
           echo "##### Validating Terraform for Application Code #####"
-          cd "terraform/dev"
+          cd "terraform/spoke"
           terraform -v
           terraform init -backend=false
           terraform validate
