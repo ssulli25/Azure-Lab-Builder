@@ -7,10 +7,10 @@ on:
         description: 'Is a hub & spoke deployment needed?'
         required: true
         default: 'true'
-      spoke:
-        description: 'Is a stand alone environment needed (no hub, spoke only)?'
-        required: true
-        default: 'false'
+      # spoke: # Aimed for Release 24.07
+      #   description: 'Is a stand alone environment needed (no hub, spoke only)?'
+      #   required: true
+      #   default: 'false'
       # spoke_model: # Aimed for Release 24.07
       #   description: 'Is the spoke cloud service model IaaS or PaaS?'
       #   required: true
