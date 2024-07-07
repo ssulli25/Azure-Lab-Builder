@@ -7,7 +7,7 @@ on:
 
 env:
   majorVersion: '24'
-  minorVersion: '06'
+  minorVersion: '07'
   azEnvironments: 'hub,prod,dev'
 
 # Name of build pipeline
