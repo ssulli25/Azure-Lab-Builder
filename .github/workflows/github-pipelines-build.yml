@@ -34,25 +34,19 @@ jobs:
         uses: actions/checkout@v2
       - name: Validate Terraform Hub
         run: |
-          echo "##### Validating Terraform for Hub #####"
+          echo "##### Validating Terraform for Hub Code #####"
           cd "terraform/hub"
           terraform -v
           terraform init -backend=false
           terraform validate
-      - name: Validate Terraform Dev
+      - name: Validate Terraform Application
         run: |
-          echo "##### Validating Terraform for Dev #####"
-          cd "terraform/dev"
+          echo "##### Validating Terraform for Application Code #####"
+          cd "terraform/spoke"
           terraform -v
           terraform init -backend=false
           terraform validate
-      - name: Validate Terraform Prod
-        run: |
-          echo "##### Validating Terraform for Prod #####"
-          cd "terraform/prod"
-          terraform -v
-          terraform init -backend=false
-          terraform validate
+### Update folder above after testing.
   
 
   Tag_Commit_with_Version:
@@ -70,16 +64,18 @@ jobs:
           git config --global user.name "github-actions[bot]"
           
           ### Set the ENDTAG based on the branch, it will be appended to the tag
-          BRANCH_NAME=${{ github.ref_name }}
+          BRANCH_NAME=${{ github.ref }}
+          BRANCH_NAME=${BRANCH_NAME#refs/heads/}
           BRANCH_NAME=${BRANCH_NAME//_/-}
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "ENDTAG=" >> $GITHUB_ENV
-          elif [[ "${{ github.ref }}" == refs/heads/release/* ]]; then
-            echo "ENDTAG=-release" >> $GITHUB_ENV
+          ENDTAG=""
+          if [[ "$BRANCH_NAME" == "main" ]]; then
+            ENDTAG=""
+          elif [[ "$BRANCH_NAME" =~ ^release/ ]]; then
+            ENDTAG="-release"
           else
-            echo "ENDTAG=-$BRANCH_NAME" >> $GITHUB_ENV
+            ENDTAG="-$BRANCH_NAME"
           fi
-      
-          git tag "${{env.majorVersion}}.${{env.minorVersion}}.${{github.run_number}}${{env.ENDTAG}}"
+        
+          git tag "${{env.majorVersion}}.${{env.minorVersion}}.${{github.run_number}}${ENDTAG}"
           git push --tags
 

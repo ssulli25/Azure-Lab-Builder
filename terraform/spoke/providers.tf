@@ -12,7 +12,7 @@ terraform {
 
 ### Primary provider for resources
 provider "azurerm" {
-  subscription_id = var.DevSubscriptionId
+  subscription_id = var.SubscriptionId
   features {
   }
 }

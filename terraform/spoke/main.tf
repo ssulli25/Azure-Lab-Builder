@@ -3,6 +3,7 @@
 #======#
 
 data "azurerm_virtual_network" "hub" {
+  count               = var.HubEnabled ? 1 : 0
   provider            = azurerm.hub
   name                = var.HubVnet
   resource_group_name = var.HubRg
@@ -33,26 +34,28 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_subnet" "workload" {
-  name                 = "workload-subnet"
+  name                 = var.WorkloadSubnetName
   resource_group_name  = azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = var.WorkloadSubnetPrefix
 }
 
 resource "azurerm_virtual_network_peering" "hub_to_spoke" {
+  count                        = var.HubEnabled ? 1 : 0
   provider                     = azurerm.hub
-  name                         = "hub-to-spoke-prod"
+  name                         = "hub-to-spoke-dev"
   resource_group_name          = var.HubRg
-  virtual_network_name         = data.azurerm_virtual_network.hub.name
+  virtual_network_name         = data.azurerm_virtual_network.hub[0].name
   remote_virtual_network_id    = azurerm_virtual_network.vnet.id
   allow_virtual_network_access = true
 }
 
 resource "azurerm_virtual_network_peering" "spoke_to_hub" {
-  name                         = "spoke-dev-to-prod"
+  count                        = var.HubEnabled ? 1 : 0
+  name                         = "spoke-dev-to-hub"
   resource_group_name          = azurerm_resource_group.rg.name
   virtual_network_name         = azurerm_virtual_network.vnet.name
-  remote_virtual_network_id    = data.azurerm_virtual_network.hub.id
+  remote_virtual_network_id    = data.azurerm_virtual_network.hub[0].id
   allow_virtual_network_access = true
 }
 

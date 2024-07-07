@@ -10,6 +10,10 @@ variable "AppVmSize" {
   default = "Standard_B2ms"
 }
 
+variable "HubEnabled" {
+  type = bool
+}
+
 variable "HubRg" {
   default = "hub-rg"
 }
@@ -19,7 +23,7 @@ variable "HubVnet" {
 }
 
 variable "Region" {
-  default = "eastus"
+  default = "eastus2"
 }
 
 variable "ResourceGroupName" {
@@ -49,13 +53,13 @@ variable "AdminPassword" {
   type        = string
 }
 
-variable "DevSubscriptionId" {
-  description = "The Subscription ID for the Dev environment"
+variable "SubscriptionId" {
+  description = "The Subscription ID for the given environment"
   type        = string
 }
 
 variable "HubSubscriptionId" {
-  description = "The Subscription ID for the Hub environment"
+  description = "The Subscription ID for the Hub environment (if applicable)"
   type        = string
 }
 
