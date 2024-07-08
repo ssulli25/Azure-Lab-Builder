@@ -2,16 +2,20 @@ variable "AdminUsername" {
   default = "adminuser"
 }
 
-variable "AppVmName" {
-  default = "app-dev-vm1"
-}
+# variable "AppVmName" {
+#   default = "app-dev-vm1"
+# }
 
 variable "AppVmSize" {
   default = "Standard_B2ms"
 }
 
+variable "EnvName" {
+  type = string
+}
+
 variable "HubEnabled" {
-  type = bool
+  default = false
 }
 
 variable "HubRg" {
@@ -26,17 +30,17 @@ variable "Region" {
   default = "eastus2"
 }
 
-variable "ResourceGroupName" {
-  default = "spoke-dev-rg"
-}
+# variable "ResourceGroupName" {
+#   default = "spoke-dev-rg"
+# }
 
 variable "VnetAddressSpace" {
   default = ["172.20.0.0/20"]
 }
 
-variable "VnetName" {
-  default = "spoke-dev-vnet"
-}
+# variable "VnetName" {
+#   default = "spoke-dev-vnet"
+# }
 
 variable "WorkloadSubnetName" {
   default = "workload-subnet"
@@ -51,15 +55,17 @@ variable "WorkloadSubnetPrefix" {
 variable "AdminPassword" {
   description = "The Password of the Dev VM"
   type        = string
+  sensitive   = true
 }
 
 variable "SubscriptionId" {
   description = "The Subscription ID for the given environment"
   type        = string
+  sensitive   = true
 }
 
 variable "HubSubscriptionId" {
   description = "The Subscription ID for the Hub environment (if applicable)"
   type        = string
+  sensitive   = true
 }
-

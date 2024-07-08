@@ -55,7 +55,7 @@ jobs:
           }
           EOL
           terraform init
-          terraform plan -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=false"
+          terraform plan -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="EnvName=sa-${{ github.event.inputs.environment }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -96,7 +96,7 @@ jobs:
           }
           EOL
           terraform init
-          terraform apply -auto-approve -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=false"
+          terraform apply -auto-approve -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="EnvName=sa-${{ github.event.inputs.environment }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 

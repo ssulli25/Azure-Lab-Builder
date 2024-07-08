@@ -18,7 +18,7 @@ data "azurerm_virtual_network" "hub" {
 #================#
 
 resource "azurerm_resource_group" "rg" {
-  name     = var.ResourceGroupName
+  name     = "spoke-${var.EnvName}-rg"
   location = var.Region
 }
 
@@ -27,7 +27,7 @@ resource "azurerm_resource_group" "rg" {
 #============#
 
 resource "azurerm_virtual_network" "vnet" {
-  name                = var.VnetName
+  name                = "spoke-${var.EnvName}-vnet"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   address_space       = var.VnetAddressSpace
@@ -43,7 +43,7 @@ resource "azurerm_subnet" "workload" {
 resource "azurerm_virtual_network_peering" "hub_to_spoke" {
   count                        = var.HubEnabled ? 1 : 0
   provider                     = azurerm.hub
-  name                         = "hub-to-spoke-dev"
+  name                         = "hub-to-spoke-${var.EnvName}"
   resource_group_name          = var.HubRg
   virtual_network_name         = data.azurerm_virtual_network.hub[0].name
   remote_virtual_network_id    = azurerm_virtual_network.vnet.id
@@ -52,7 +52,7 @@ resource "azurerm_virtual_network_peering" "hub_to_spoke" {
 
 resource "azurerm_virtual_network_peering" "spoke_to_hub" {
   count                        = var.HubEnabled ? 1 : 0
-  name                         = "spoke-dev-to-hub"
+  name                         = "spoke-${var.EnvName}-to-hub"
   resource_group_name          = azurerm_resource_group.rg.name
   virtual_network_name         = azurerm_virtual_network.vnet.name
   remote_virtual_network_id    = data.azurerm_virtual_network.hub[0].id
@@ -64,7 +64,7 @@ resource "azurerm_virtual_network_peering" "spoke_to_hub" {
 #=========#
 
 resource "azurerm_windows_virtual_machine" "app_vm" {
-  name                  = var.AppVmName
+  name                  = "app-${var.EnvName}-vm"
   resource_group_name   = azurerm_resource_group.rg.name
   location              = azurerm_resource_group.rg.location
   size                  = var.AppVmSize
@@ -86,12 +86,12 @@ resource "azurerm_windows_virtual_machine" "app_vm" {
 }
 
 resource "azurerm_network_interface" "app_nic" {
-  name                = "nic-${var.AppVmName}"
+  name                = "nic-app-${var.EnvName}-vm"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
 
   ip_configuration {
-    name                          = "nic-${var.AppVmName}-config1"
+    name                          = "nic-app-${var.EnvName}-vm-config"
     subnet_id                     = azurerm_subnet.workload.id
     private_ip_address_allocation = "Dynamic"
   }
