@@ -1,0 +1,105 @@
+# Trigger to run pipeline
+on:
+  # This event allows you to trigger the workflow manually from the GitHub Actions tab in your repository.
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'What is the name of the spoke environment to deploy (for example: dev, test, and prod)?'
+        required: true
+        default: 'dev'
+      spoke:
+        description: 'Is a stand-alone spoke deployment needed?'
+        required: true
+        default: 'true'
+      # spoke_model: # Aimed for Release 24.07
+      #   description: 'Is the spoke cloud service model IaaS or PaaS?'
+      #   required: true
+      #   default: 'IaaS'
+
+# Name of deploy pipeline
+name: deploy.beta.stand+alone
+
+# Deploy pipeline jobs
+jobs:
+
+### Stand-Alone Spoke
+  App_Verification:
+    if: ${{ github.event.inputs.spoke == 'true' }}
+    name: Pre-Verification - ${{ inputs.environment }} environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set secret names
+        id: set_secrets
+        run: |
+          echo "AZ_SP_SECRET_NAME=AZ_SP_${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          echo "SUBSCRIPTION_ID_SECRET_NAME=${{ github.event.inputs.environment }}_SUBSCRIPTION_ID" >> $GITHUB_ENV
+          echo "CONTAINER_NAME_SECRET_NAME=${{ github.event.inputs.environment }}_SA_CONTAINER_NAME" >> $GITHUB_ENV
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Terraform - Setup Backend, Initialize, and Plan
+        run: |
+          cd "terraform/spoke"
+          cat >backend.tf <<EOL
+          terraform {
+            backend "azurerm" {
+              subscription_id      = "$ARM_SUBSCRIPTION_ID"
+              resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
+              storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
+              container_name       = "$ARM_SA_CONTAINER_NAME"
+              key                  = "${{ github.event.inputs.environment }}.tfstate"
+            }
+          }
+          EOL
+          terraform init
+          terraform plan -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=false"
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
+          ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
+          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+          ARM_CONTAINER_NAME: "sls-terraform-state-sa-${{ github.event.inputs.environment }}"
+
+  App_Deployment:
+    if: ${{ github.event.inputs.spoke == 'true' }}
+    name: Deployment - ${{ inputs.environment }} environment
+    needs: App_Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set secret names
+        id: set_secrets
+        run: |
+          echo "AZ_SP_SECRET_NAME=AZ_SP_${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          echo "SUBSCRIPTION_ID_SECRET_NAME=${{ github.event.inputs.environment }}_SUBSCRIPTION_ID" >> $GITHUB_ENV
+          echo "CONTAINER_NAME_SECRET_NAME=${{ github.event.inputs.environment }}_SA_CONTAINER_NAME" >> $GITHUB_ENV
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Terraform - Setup Backend and Apply
+        run: |
+          cd "terraform/spoke"
+          cat >backend.tf <<EOL
+          terraform {
+            backend "azurerm" {
+              subscription_id      = "$ARM_SUBSCRIPTION_ID"
+              resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
+              storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
+              container_name       = "$ARM_CONTAINER_NAME"
+              key                  = "${{ github.event.inputs.environment }}.tfstate"
+            }
+          }
+          EOL
+          terraform init
+          terraform apply -auto-approve -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=false"
+        env:
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
+          ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
+          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
+          ARM_CONTAINER_NAME: "sls-terraform-state-sa-${{ github.event.inputs.environment }}"
