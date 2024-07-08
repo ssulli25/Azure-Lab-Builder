@@ -3,14 +3,14 @@ on:
   # This event allows you to trigger the workflow manually from the GitHub Actions tab in your repository.
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'What is the name of the spoke environment to deploy (for example: dev, test, and prod)?'
-        required: true
-        default: 'dev'
       spoke:
         description: 'Is a stand-alone spoke deployment needed?'
         required: true
         default: 'true'
+      environment:
+        description: 'What is the name of the spoke environment to deploy (for example: dev, test, and prod)?'
+        required: true
+        default: 'dev'
       # spoke_model: # Aimed for Release 24.07
       #   description: 'Is the spoke cloud service model IaaS or PaaS?'
       #   required: true
