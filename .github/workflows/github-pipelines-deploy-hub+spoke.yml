@@ -195,7 +195,6 @@ jobs:
           }
           EOL
           terraform init
-          terraform apply -auto-approve -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=true" -var="EnvName=hs-${{ github.event.inputs.environment }}"
           if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
               terraform apply -auto-approve -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=true" -var="EnvName=hs-${{ github.event.inputs.environment }}"
           else [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
