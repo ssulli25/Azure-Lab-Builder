@@ -153,7 +153,7 @@ jobs:
           if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
               terraform plan -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=true" -var="EnvName=hs-${{ github.event.inputs.environment }}"
           elif [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
-              terraform plan -destroy -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=true" -var="EnvName=hs-${{ github.event.inputs.environment }}"
+              terraform plan -destroy -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=false" -var="EnvName=hs-${{ github.event.inputs.environment }}"
           else
               echo "Please input either an apply or destroy command (case sensitive)."
               exit 1
