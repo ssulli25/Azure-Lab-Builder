@@ -49,6 +49,7 @@ jobs:
   App_Verification:
     if: ${{ github.event.inputs.spoke == 'true' }}
     name: Pre-Verification - ${{ inputs.environment }} environment
+    needs: Input_Verification
     runs-on: ubuntu-latest
     steps:
       - name: Set secret names

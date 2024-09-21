@@ -49,6 +49,7 @@ jobs:
   Hub_Verification:
     if: ${{ github.event.inputs.hub == 'true' }}
     name: Hub Pre-Verification
+    needs: Input_Verification
     runs-on: ubuntu-latest
     steps:
       - name: Set secret names
