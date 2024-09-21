@@ -8,14 +8,14 @@ on:
         required: true
         default: 'true'
       environment:
-        description: 'What is the name of the spoke environment to deploy (for example: dev, test, and prod)?'
+        description: 'Please select a spoke name: dev, test, or prod (case sensitive)?'
         required: true
         default: 'dev'
       terraform_action:
         description: 'Would you like to run a Terraform apply or destroy command?'
         required: true
         default: 'apply'
-      # spoke_model: # Aimed for Release 24.07
+      # spoke_model: # Aimed for Release 24.07 or later
       #   description: 'Is the spoke cloud service model IaaS or PaaS?'
       #   required: true
       #   default: 'IaaS'
@@ -25,6 +25,27 @@ name: deploy.beta.hub+spoke
 
 # Deploy pipeline jobs
 jobs:
+  ### Hub & Spoke Model
+  Input_Verification:
+    name: User Input Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify Environment Name is dev, test, or prod
+        run: |
+          if [[ "${{ github.event.inputs.environment }}" =~ ^(dev|test|prod)$ ]]; then
+              echo "Environment name is valid."
+          else
+              echo "Environment name is invalid. Please input either dev, test, or prod (case sensitive)."
+              exit 1
+          fi
+      - name: Verify Terraform Action is apply or destroy
+        run: |
+          if [[ "${{ github.event.inputs.terraform_action }}" =~ ^(apply|destroy)$ ]]; then
+              echo "Terraform action is valid."
+          else
+              echo "Terraform action is invalid. Please input either an apply or destroy command (case sensitive)."
+              exit 1
+          fi
   Hub_Verification:
     if: ${{ github.event.inputs.hub == 'true' }}
     name: Hub Pre-Verification
@@ -57,10 +78,9 @@ jobs:
           }
           EOL
           terraform init
-          terraform_action=$(echo "${{ github.event.inputs.terraform_action }}" | tr '[:upper:]' '[:lower:]')
-          if [ "$terraform_action" = "apply" ]; then
+          if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
               terraform plan -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
-          elif [ "$terraform_action" = "destroy" ]; then
+          elif [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
               terraform plan -destroy -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
           else
               echo "Please input either an apply or destroy command (case sensitive)."
@@ -106,8 +126,7 @@ jobs:
           }
           EOL
           terraform init
-          terraform_action=$(echo "${{ github.event.inputs.terraform_action }}" | tr '[:upper:]' '[:lower:]')
-          terraform "$terraform_action" -auto-approve -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
+          terraform ${{ github.event.inputs.terraform_action }} -auto-approve -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -152,10 +171,9 @@ jobs:
           }
           EOL
           terraform init
-          terraform_action=$(echo "${{ github.event.inputs.terraform_action }}" | tr '[:upper:]' '[:lower:]')
-          if [ "$terraform_action" = "apply" ]; then
+          if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
               terraform plan -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=true" -var="EnvName=hs-${{ github.event.inputs.environment }}"
-          elif [ "$terraform_action" = "destroy" ]; then
+          elif [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
               terraform plan -destroy -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=false" -var="EnvName=hs-${{ github.event.inputs.environment }}"
           else
               echo "Please input either an apply or destroy command (case sensitive)."
@@ -201,10 +219,9 @@ jobs:
           }
           EOL
           terraform init
-          terraform_action=$(echo "${{ github.event.inputs.terraform_action }}" | tr '[:upper:]' '[:lower:]')
-          if [ "$terraform_action" = "apply" ]; then
+          if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
               terraform apply -auto-approve -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=true" -var="EnvName=hs-${{ github.event.inputs.environment }}"
-          elif [ "$terraform_action" = "destroy" ]; then
+          elif [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
               terraform destroy -auto-approve -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=false" -var="EnvName=hs-${{ github.event.inputs.environment }}"
           else
               echo "Please input either an apply or destroy command (case sensitive)."
