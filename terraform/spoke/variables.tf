@@ -2,10 +2,6 @@ variable "AdminUsername" {
   default = "adminuser"
 }
 
-# variable "AppVmName" {
-#   default = "app-dev-vm1"
-# }
-
 variable "AppVmSize" {
   default = "Standard_B2ms"
 }
@@ -30,17 +26,9 @@ variable "Region" {
   default = "eastus2"
 }
 
-# variable "ResourceGroupName" {
-#   default = "spoke-dev-rg"
-# }
-
 variable "VnetAddressSpace" {
   default = ["172.20.0.0/20"]
 }
-
-# variable "VnetName" {
-#   default = "spoke-dev-vnet"
-# }
 
 variable "WorkloadSubnetName" {
   default = "workload-subnet"

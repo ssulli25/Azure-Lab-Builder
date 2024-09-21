@@ -12,7 +12,7 @@ on:
         required: true
         default: 'dev'
       terraform_action:
-        description: 'Would you like to run a Terraform Apply or Destroy command?'
+        description: 'Would you like to run a Terraform apply or destroy command?'
         required: true
         default: 'apply'
       # spoke_model: # Aimed for Release 24.07
@@ -57,9 +57,10 @@ jobs:
           }
           EOL
           terraform init
-          if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
+          terraform_action=$(echo "${{ github.event.inputs.terraform_action }}" | tr '[:upper:]' '[:lower:]')
+          if [ "$terraform_action" = "apply" ]; then
               terraform plan -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
-          elif [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
+          elif [ "$terraform_action" = "destroy" ]; then
               terraform plan -destroy -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
           else
               echo "Please input either an apply or destroy command (case sensitive)."
@@ -105,7 +106,8 @@ jobs:
           }
           EOL
           terraform init
-          terraform ${{ github.event.inputs.terraform_action }} -auto-approve -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
+          terraform_action=$(echo "${{ github.event.inputs.terraform_action }}" | tr '[:upper:]' '[:lower:]')
+          terraform "$terraform_action" -auto-approve -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -150,9 +152,10 @@ jobs:
           }
           EOL
           terraform init
-          if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
+          terraform_action=$(echo "${{ github.event.inputs.terraform_action }}" | tr '[:upper:]' '[:lower:]')
+          if [ "$terraform_action" = "apply" ]; then
               terraform plan -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=true" -var="EnvName=hs-${{ github.event.inputs.environment }}"
-          elif [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
+          elif [ "$terraform_action" = "destroy" ]; then
               terraform plan -destroy -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=false" -var="EnvName=hs-${{ github.event.inputs.environment }}"
           else
               echo "Please input either an apply or destroy command (case sensitive)."
@@ -198,14 +201,15 @@ jobs:
           }
           EOL
           terraform init
-          if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
+          terraform_action=$(echo "${{ github.event.inputs.terraform_action }}" | tr '[:upper:]' '[:lower:]')
+          if [ "$terraform_action" = "apply" ]; then
               terraform apply -auto-approve -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=true" -var="EnvName=hs-${{ github.event.inputs.environment }}"
-          elif [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
+          elif [ "$terraform_action" = "destroy" ]; then
               terraform destroy -auto-approve -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" -var="HubEnabled=false" -var="EnvName=hs-${{ github.event.inputs.environment }}"
           else
               echo "Please input either an apply or destroy command (case sensitive)."
               exit 1
-          fi
+          fi         
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
