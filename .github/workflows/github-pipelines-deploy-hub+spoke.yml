@@ -12,7 +12,7 @@ on:
         required: true
         default: 'dev'
       terraform_action:
-        description: 'Would you like to run a Terraform apply or destroy command?'
+        description: 'Would you like to run a Terraform apply or destroy command (case sensitive)?'
         required: true
         default: 'apply'
       # spoke_model: # Aimed for Release 24.07 or later
@@ -237,12 +237,12 @@ jobs:
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: "sls-terraform-state-${{ github.event.inputs.environment }}"
-          PROD_VNET_CIDR: ${{ secrets.PROD_VNET_CIDR }}
-          PROD_WORKLOAD_SUBNET_CIDR: ${{ secrets.PROD_WORKLOAD_SUBNET_CIDR }}
-          TEST_VNET_CIDR: ${{ secrets.TEST_VNET_CIDR }}
-          TEST_WORKLOAD_SUBNET_CIDR: ${{ secrets.TEST_WORKLOAD_SUBNET_CIDR }}
-          DEV_VNET_CIDR: ${{ secrets.DEV_VNET_CIDR }}
-          DEV_WORKLOAD_SUBNET_CIDR: ${{ secrets.DEV_WORKLOAD_SUBNET_CIDR }}
+          PROD_VNET_CIDR: ${{ vars.PROD_VNET_CIDR }}
+          PROD_WORKLOAD_SUBNET_CIDR: ${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}
+          TEST_VNET_CIDR: ${{ vars.TEST_VNET_CIDR }}
+          TEST_WORKLOAD_SUBNET_CIDR: ${{ vars.TEST_WORKLOAD_SUBNET_CIDR }}
+          DEV_VNET_CIDR: ${{ vars.DEV_VNET_CIDR }}
+          DEV_WORKLOAD_SUBNET_CIDR: ${{ vars.DEV_WORKLOAD_SUBNET_CIDR }}
 
   App_Deployment:
     if: ${{ github.event.inputs.hub == 'true' }}
@@ -327,10 +327,10 @@ jobs:
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: "sls-terraform-state-${{ github.event.inputs.environment }}"
-          PROD_VNET_CIDR: ${{ secrets.PROD_VNET_CIDR }}
-          PROD_WORKLOAD_SUBNET_CIDR: ${{ secrets.PROD_WORKLOAD_SUBNET_CIDR }}
-          TEST_VNET_CIDR: ${{ secrets.TEST_VNET_CIDR }}
-          TEST_WORKLOAD_SUBNET_CIDR: ${{ secrets.TEST_WORKLOAD_SUBNET_CIDR }}
-          DEV_VNET_CIDR: ${{ secrets.DEV_VNET_CIDR }}
-          DEV_WORKLOAD_SUBNET_CIDR: ${{ secrets.DEV_WORKLOAD_SUBNET_CIDR }}
+          PROD_VNET_CIDR: ${{ vars.PROD_VNET_CIDR }}
+          PROD_WORKLOAD_SUBNET_CIDR: ${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}
+          TEST_VNET_CIDR: ${{ vars.TEST_VNET_CIDR }}
+          TEST_WORKLOAD_SUBNET_CIDR: ${{ vars.TEST_WORKLOAD_SUBNET_CIDR }}
+          DEV_VNET_CIDR: ${{ vars.DEV_VNET_CIDR }}
+          DEV_WORKLOAD_SUBNET_CIDR: ${{ vars.DEV_WORKLOAD_SUBNET_CIDR }}
 
