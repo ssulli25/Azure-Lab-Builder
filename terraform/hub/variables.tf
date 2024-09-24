@@ -1,5 +1,5 @@
 variable "VnetAddressSpace" {
-  default = ["10.1.0.0/20"]
+  type = list(string)
 }
 
 variable "BastionName" {
@@ -7,11 +7,11 @@ variable "BastionName" {
 }
 
 variable "BastionSubnetPrefix" {
-  default = ["10.1.3.0/24"]
+  type = list(string)
 }
 
 variable "GatewaySubnetPrefix" {
-  default = ["10.1.2.0/24"]
+  type = list(string)
 }
 
 variable "LogAnalyticsName" {
@@ -19,7 +19,7 @@ variable "LogAnalyticsName" {
 }
 
 variable "MgmtSubnetPrefix" {
-  default = ["10.1.1.0/24"]
+  type = list(string)
 }
 
 variable "Region" {

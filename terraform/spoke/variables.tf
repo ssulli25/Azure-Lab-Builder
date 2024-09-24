@@ -27,7 +27,7 @@ variable "Region" {
 }
 
 variable "VnetAddressSpace" {
-  default = ["172.20.0.0/20"]
+  type = list(string)
 }
 
 variable "WorkloadSubnetName" {
@@ -35,7 +35,7 @@ variable "WorkloadSubnetName" {
 }
 
 variable "WorkloadSubnetPrefix" {
-  default = ["172.20.1.0/24"]
+  type = list(string)
 }
 
 ##### Sensitive Variables #####
