@@ -85,7 +85,7 @@ jobs:
 
           terraform init
           if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
-              terraform plan \ 
+              terraform plan \
                 -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
                 -var="VnetAddressSpace=${HUB_VNET_CIDR}" \
                 -var="BastionSubnetPrefix=${BASTION_SUBNET_CIDR}" \
