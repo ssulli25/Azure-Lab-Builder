@@ -70,6 +70,10 @@ jobs:
           echo "BASTION_SUBNET_CIDR: ${{ secrets.BASTION_SUBNET_CIDR }}"
           echo "GATEWAY_SUBNET_CIDR: ${{ secrets.GATEWAY_SUBNET_CIDR }}"
           echo "MGMT_SUBNET_CIDR: ${{ secrets.MGMT_SUBNET_CIDR }}"
+
+          echo "PROD_VNET_CIDR: ${{ vars.PROD_VNET_CIDR }}"
+          echo "PROD_WORKLOAD_SUBNET_CIDR: ${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}"
+
       - name: Terraform Hub - Setup Backend, Initialize, and Plan
         run: |
           cd "terraform/hub"
