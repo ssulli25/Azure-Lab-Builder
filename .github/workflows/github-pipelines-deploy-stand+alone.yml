@@ -103,18 +103,18 @@ jobs:
             if [ ${{ github.event.inputs.environment }} = "prod" ]; then
               terraform plan -destroy -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
               -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
-              -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ secrets.PROD_VNET_CIDR }}" \
-              -var="WorkloadSubnetAddressSpace=${{ secrets.PROD_WORKLOAD_SUBNET_CIDR }}"
+              -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ vars.PROD_VNET_CIDR }}" \
+              -var="WorkloadSubnetAddressSpace=${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}"
             elif [ ${{ github.event.inputs.environment }} = "test" ]; then
               terraform plan -destroy -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
               -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
-              -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ secrets.TEST_VNET_CIDR }}" \
-              -var="WorkloadSubnetAddressSpace=${{ secrets.TEST_WORKLOAD_SUBNET_CIDR }}"
+              -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ vars.TEST_VNET_CIDR }}" \
+              -var="WorkloadSubnetAddressSpace=${{ vars.TEST_WORKLOAD_SUBNET_CIDR }}"
             elif [ ${{ github.event.inputs.environment }} = "dev" ]; then
               terraform plan -destroy -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
               -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
-              -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ secrets.DEV_VNET_CIDR }}" \
-              -var="WorkloadSubnetAddressSpace=${{ secrets.DEV_WORKLOAD_SUBNET_CIDR }}"
+              -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ vars.DEV_VNET_CIDR }}" \
+              -var="WorkloadSubnetAddressSpace=${{ vars.DEV_WORKLOAD_SUBNET_CIDR }}"
             else
               echo "Please input either dev, test, or prod (case sensitive)."
               exit 1
@@ -129,12 +129,6 @@ jobs:
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: "sls-terraform-state-sa-${{ github.event.inputs.environment }}"
-          PROD_VNET_CIDR: ${{ vars.PROD_VNET_CIDR }}
-          PROD_WORKLOAD_SUBNET_CIDR: ${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}
-          TEST_VNET_CIDR: ${{ vars.TEST_VNET_CIDR }}
-          TEST_WORKLOAD_SUBNET_CIDR: ${{ vars.TEST_WORKLOAD_SUBNET_CIDR }}
-          DEV_VNET_CIDR: ${{ vars.DEV_VNET_CIDR }}
-          DEV_WORKLOAD_SUBNET_CIDR: ${{ vars.DEV_WORKLOAD_SUBNET_CIDR }}
 
   App_Deployment:
     if: ${{ github.event.inputs.spoke == 'true' }}
@@ -172,18 +166,18 @@ jobs:
           if [ ${{ github.event.inputs.environment }} = "prod" ]; then 
             terraform ${{ github.event.inputs.terraform_action }} -auto-approve -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
             -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
-            -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ secrets.PROD_VNET_CIDR }}" \
-            -var="WorkloadSubnetAddressSpace=${{ secrets.PROD_WORKLOAD_SUBNET_CIDR }}"
+            -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ vars.PROD_VNET_CIDR }}" \
+            -var="WorkloadSubnetAddressSpace=${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}"
           elif [ ${{ github.event.inputs.environment }} = "test" ]; then
             terraform ${{ github.event.inputs.terraform_action }} -auto-approve -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
             -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
-            -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ secrets.TEST_VNET_CIDR }}" \
-            -var="WorkloadSubnetAddressSpace=${{ secrets.TEST_WORKLOAD_SUBNET_CIDR }}"
+            -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ vars.TEST_VNET_CIDR }}" \
+            -var="WorkloadSubnetAddressSpace=${{ vars.TEST_WORKLOAD_SUBNET_CIDR }}"
           elif [ ${{ github.event.inputs.environment }} = "dev" ]; then
             terraform ${{ github.event.inputs.terraform_action }} -auto-approve -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
             -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
-            -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ secrets.DEV_VNET_CIDR }}" \
-            -var="WorkloadSubnetAddressSpace=${{ secrets.DEV_WORKLOAD_SUBNET_CIDR }}"
+            -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ vars.DEV_VNET_CIDR }}" \
+            -var="WorkloadSubnetAddressSpace=${{ vars.DEV_WORKLOAD_SUBNET_CIDR }}"
           else
             echo "Please input either dev, test, or prod (case sensitive)."
             exit 1
@@ -194,9 +188,3 @@ jobs:
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: "sls-terraform-state-sa-${{ github.event.inputs.environment }}"
-          PROD_VNET_CIDR: ${{ vars.PROD_VNET_CIDR }}
-          PROD_WORKLOAD_SUBNET_CIDR: ${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}
-          TEST_VNET_CIDR: ${{ vars.TEST_VNET_CIDR }}
-          TEST_WORKLOAD_SUBNET_CIDR: ${{ vars.TEST_WORKLOAD_SUBNET_CIDR }}
-          DEV_VNET_CIDR: ${{ vars.DEV_VNET_CIDR }}
-          DEV_WORKLOAD_SUBNET_CIDR: ${{ vars.DEV_WORKLOAD_SUBNET_CIDR }}
