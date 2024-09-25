@@ -64,6 +64,12 @@ jobs:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Print Secret Values
+        run: |
+          echo "HUB_VNET_CIDR: ${{ secrets.HUB_VNET_CIDR }}"
+          echo "BASTION_SUBNET_CIDR: ${{ secrets.BASTION_SUBNET_CIDR }}"
+          echo "GATEWAY_SUBNET_CIDR: ${{ secrets.GATEWAY_SUBNET_CIDR }}"
+          echo "MGMT_SUBNET_CIDR: ${{ secrets.MGMT_SUBNET_CIDR }}"
       - name: Terraform Hub - Setup Backend, Initialize, and Plan
         run: |
           cd "terraform/hub"
