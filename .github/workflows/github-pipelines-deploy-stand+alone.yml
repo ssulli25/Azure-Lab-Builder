@@ -83,18 +83,18 @@ jobs:
             if [ ${{ github.event.inputs.environment }} = "prod" ]; then
               terraform plan -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \ 
               -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
-              -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ secrets.PROD_VNET_CIDR }}" \
-              -var="WorkloadSubnetAddressSpace=${{ secrets.PROD_WORKLOAD_SUBNET_CIDR }}"
+              -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ vars.PROD_VNET_CIDR }}" \
+              -var="WorkloadSubnetAddressSpace=${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}"
             elif [ ${{ github.event.inputs.environment }} = "test" ]; then
               terraform plan -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \ 
               -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
-              -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ secrets.TEST_VNET_CIDR }}" \
-              -var="WorkloadSubnetAddressSpace=${{ secrets.TEST_WORKLOAD_SUBNET_CIDR }}"
+              -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ vars.TEST_VNET_CIDR }}" \
+              -var="WorkloadSubnetAddressSpace=${{ vars.TEST_WORKLOAD_SUBNET_CIDR }}"
             elif [ ${{ github.event.inputs.environment }} = "dev" ]; then
               terraform plan -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \ 
               -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
-              -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ secrets.DEV_VNET_CIDR }}" \
-              -var="WorkloadSubnetAddressSpace=${{ secrets.DEV_WORKLOAD_SUBNET_CIDR }}"
+              -var="EnvName=sa-${{ github.event.inputs.environment }}" -var="VnetAddressSpace=${{ vars.DEV_VNET_CIDR }}" \
+              -var="WorkloadSubnetAddressSpace=${{ vars.DEV_WORKLOAD_SUBNET_CIDR }}"
             else
               echo "Please input either dev, test, or prod (case sensitive)."
               exit 1
