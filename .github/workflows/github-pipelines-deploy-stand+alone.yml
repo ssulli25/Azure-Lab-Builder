@@ -114,7 +114,7 @@ jobs:
             fi
           elif [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
             if [ ${{ github.event.inputs.environment }} = "prod" ]; then
-              terraform plan -destroy /
+              terraform plan -destroy \
               -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
               -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
               -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
