@@ -86,7 +86,7 @@ jobs:
           if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
             if [ ${{ github.event.inputs.environment }} = "prod" ]; then
               terraform plan \
-              -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \ 
+              -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
               -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
               -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
               -var="EnvName=sa-${{ github.event.inputs.environment }}" \
@@ -94,7 +94,7 @@ jobs:
               -var="WorkloadSubnetPrefix=${PROD_WORKLOAD_SUBNET_CIDR}"
             elif [ ${{ github.event.inputs.environment }} = "test" ]; then
               terraform plan \
-              -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \ 
+              -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
               -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
               -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
               -var="EnvName=sa-${{ github.event.inputs.environment }}" \
@@ -102,7 +102,7 @@ jobs:
               -var="WorkloadSubnetPrefix=${TEST_WORKLOAD_SUBNET_CIDR}"
             elif [ ${{ github.event.inputs.environment }} = "dev" ]; then
               terraform plan \
-              -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \ 
+              -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
               -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
               -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
               -var="EnvName=sa-${{ github.event.inputs.environment }}" \
@@ -191,7 +191,7 @@ jobs:
           }
           EOL
           terraform init
-          if [ ${{ github.event.inputs.environment }} = "prod" ]; then 
+          if [ ${{ github.event.inputs.environment }} = "prod" ]; then
             terraform ${{ github.event.inputs.terraform_action }} -auto-approve \
             -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
             -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
