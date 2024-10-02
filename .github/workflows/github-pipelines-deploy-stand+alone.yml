@@ -79,6 +79,10 @@ jobs:
               storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
               container_name       = "$ARM_CONTAINER_NAME"
               key                  = "${{ github.event.inputs.environment }}.tfstate"
+              client_id            = "$ARM_CLIENT_ID"
+              client_secret        = "$ARM_CLIENT_SECRET"
+              tenant_id            = "$ARM_TENANT_ID"
+              user_azuread_auth    = true
             }
           }
           EOL
@@ -150,6 +154,9 @@ jobs:
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_CONTAINER_NAME: "sls-terraform-state-sa-${{ github.event.inputs.environment }}"
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           PROD_VNET_CIDR: ${{ vars.PROD_VNET_CIDR }}
           PROD_WORKLOAD_SUBNET_CIDR: ${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}
           TEST_VNET_CIDR: ${{ vars.TEST_VNET_CIDR }}
@@ -186,6 +193,10 @@ jobs:
               storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
               container_name       = "$ARM_CONTAINER_NAME"
               key                  = "${{ github.event.inputs.environment }}.tfstate"
+              client_id            = "$ARM_CLIENT_ID"
+              client_secret        = "$ARM_CLIENT_SECRET"
+              tenant_id            = "$ARM_TENANT_ID"
+              user_azuread_auth    = true
             }
           }
           EOL
@@ -223,6 +234,9 @@ jobs:
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_CONTAINER_NAME: "sls-terraform-state-sa-${{ github.event.inputs.environment }}"
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           PROD_VNET_CIDR: ${{ vars.PROD_VNET_CIDR }}
           PROD_WORKLOAD_SUBNET_CIDR: ${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}
           TEST_VNET_CIDR: ${{ vars.TEST_VNET_CIDR }}

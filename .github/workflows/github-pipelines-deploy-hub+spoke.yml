@@ -63,11 +63,9 @@ jobs:
           echo "SUBSCRIPTION_ID_SECRET_NAME=HUB_SUBSCRIPTION_ID" >> $GITHUB_ENV
           echo "CONTAINER_NAME_SECRET_NAME=HUB_CONTAINER_NAME" >> $GITHUB_ENV
       - name: Login to Azure - Hub
-        uses: azure/login@v2
+        uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Terraform Hub - Setup Backend, Initialize, and Plan
@@ -81,6 +79,10 @@ jobs:
               storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
               container_name       = "$ARM_CONTAINER_NAME"
               key                  = "hub.tfstate"
+              client_id            = "$ARM_CLIENT_ID"
+              client_secret        = "$ARM_CLIENT_SECRET"
+              tenant_id            = "$ARM_TENANT_ID"
+              user_azuread_auth    = true
             }
           }
           EOL
@@ -109,6 +111,9 @@ jobs:
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_CONTAINER_NAME: ${{ secrets.HUB_CONTAINER_NAME }}
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           HUB_VNET_CIDR: ${{ secrets.HUB_VNET_CIDR }}
           BASTION_SUBNET_CIDR: ${{ secrets.BASTION_SUBNET_CIDR }}
           GATEWAY_SUBNET_CIDR: ${{ secrets.GATEWAY_SUBNET_CIDR }}
@@ -127,11 +132,9 @@ jobs:
           echo "SUBSCRIPTION_ID_SECRET_NAME=HUB_SUBSCRIPTION_ID" >> $GITHUB_ENV
           echo "CONTAINER_NAME_SECRET_NAME=HUB_CONTAINER_NAME" >> $GITHUB_ENV
       - name: Login to Azure - Hub
-        uses: azure/login@v2
+        uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Terraform Hub - Setup Backend and Apply
@@ -145,6 +148,10 @@ jobs:
               storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
               container_name       = "$ARM_CONTAINER_NAME"
               key                  = "hub.tfstate"
+              client_id            = "$ARM_CLIENT_ID"
+              client_secret        = "$ARM_CLIENT_SECRET"
+              tenant_id            = "$ARM_TENANT_ID"
+              user_azuread_auth    = true
             }
           }
           EOL
@@ -160,6 +167,9 @@ jobs:
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_CONTAINER_NAME: ${{ secrets.HUB_CONTAINER_NAME }}
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           HUB_VNET_CIDR: ${{ secrets.HUB_VNET_CIDR }}
           BASTION_SUBNET_CIDR: ${{ secrets.BASTION_SUBNET_CIDR }}
           GATEWAY_SUBNET_CIDR: ${{ secrets.GATEWAY_SUBNET_CIDR }}
@@ -182,11 +192,9 @@ jobs:
           echo "SUBSCRIPTION_ID_SECRET_NAME=${{ github.event.inputs.environment }}_SUBSCRIPTION_ID" >> $GITHUB_ENV
           echo "CONTAINER_NAME_SECRET_NAME=${{ github.event.inputs.environment }}_CONTAINER_NAME" >> $GITHUB_ENV
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Terraform - Setup Backend, Initialize, and Plan
@@ -200,6 +208,10 @@ jobs:
               storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
               container_name       = "$ARM_CONTAINER_NAME"
               key                  = "${{ github.event.inputs.environment }}.tfstate"
+              client_id            = "$ARM_CLIENT_ID"
+              client_secret        = "$ARM_CLIENT_SECRET"
+              tenant_id            = "$ARM_TENANT_ID"
+              user_azuread_auth    = true
             }
           }
           EOL
@@ -276,6 +288,9 @@ jobs:
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_CONTAINER_NAME: "sls-terraform-state-${{ github.event.inputs.environment }}"
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           PROD_VNET_CIDR: ${{ vars.PROD_VNET_CIDR }}
           PROD_WORKLOAD_SUBNET_CIDR: ${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}
           TEST_VNET_CIDR: ${{ vars.TEST_VNET_CIDR }}
@@ -296,11 +311,9 @@ jobs:
           echo "SUBSCRIPTION_ID_SECRET_NAME=${{ github.event.inputs.environment }}_SUBSCRIPTION_ID" >> $GITHUB_ENV
           echo "CONTAINER_NAME_SECRET_NAME=${{ github.event.inputs.environment }}_CONTAINER_NAME" >> $GITHUB_ENV
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Terraform - Setup Backend and Apply
@@ -314,6 +327,10 @@ jobs:
               storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
               container_name       = "$ARM_CONTAINER_NAME"
               key                  = "${{ github.event.inputs.environment }}.tfstate"
+              client_id            = "$ARM_CLIENT_ID"
+              client_secret        = "$ARM_CLIENT_SECRET"
+              tenant_id            = "$ARM_TENANT_ID"
+              user_azuread_auth    = true
             }
           }
           EOL
@@ -391,6 +408,9 @@ jobs:
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
           ARM_CONTAINER_NAME: "sls-terraform-state-${{ github.event.inputs.environment }}"
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
           PROD_VNET_CIDR: ${{ vars.PROD_VNET_CIDR }}
           PROD_WORKLOAD_SUBNET_CIDR: ${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}
           TEST_VNET_CIDR: ${{ vars.TEST_VNET_CIDR }}
