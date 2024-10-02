@@ -106,7 +106,6 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
-          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: ${{ secrets.HUB_CONTAINER_NAME }}
           HUB_VNET_CIDR: ${{ secrets.HUB_VNET_CIDR }}
           BASTION_SUBNET_CIDR: ${{ secrets.BASTION_SUBNET_CIDR }}
@@ -156,7 +155,6 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
-          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: ${{ secrets.HUB_CONTAINER_NAME }}
           HUB_VNET_CIDR: ${{ secrets.HUB_VNET_CIDR }}
           BASTION_SUBNET_CIDR: ${{ secrets.BASTION_SUBNET_CIDR }}
@@ -271,7 +269,6 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
-          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: "sls-terraform-state-${{ github.event.inputs.environment }}"
           PROD_VNET_CIDR: ${{ vars.PROD_VNET_CIDR }}
           PROD_WORKLOAD_SUBNET_CIDR: ${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}
@@ -385,7 +382,6 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
-          ARM_ACCESS_KEY: ${{ secrets.ARM_ACCESS_KEY }}
           ARM_CONTAINER_NAME: "sls-terraform-state-${{ github.event.inputs.environment }}"
           PROD_VNET_CIDR: ${{ vars.PROD_VNET_CIDR }}
           PROD_WORKLOAD_SUBNET_CIDR: ${{ vars.PROD_WORKLOAD_SUBNET_CIDR }}
