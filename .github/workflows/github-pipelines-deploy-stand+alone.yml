@@ -70,13 +70,13 @@ jobs:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: Downnload TFVARS
+      - name: Download TFVARS
         run: |
-          az storage blob download 
-          --file ./terraform/spoke/${{ env.TFVARS_SECRET_NAME }}
-          -c ${{ env.CONTAINER_SECRET_NAME }}
-          --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }}
-          --name ${{ env.TFVARS_SECRET_NAME }}  
+          az storage blob download \
+            --file ./terraform/spoke/${{ env.TFVARS_SECRET_NAME }} \
+            --container-name ${{ env.CONTAINER_SECRET_NAME }} \
+            --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }} \
+            --name ${{ env.TFVARS_SECRET_NAME }}  
       - name: Terraform - Setup Backend, Initialize, and Plan
         run: |
           cd "terraform/spoke"
@@ -141,13 +141,13 @@ jobs:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: Downnload TFVARS
+      - name: Download TFVARS
         run: |
-          az storage blob download 
-          --file ./terraform/spoke/${{ env.TFVARS_SECRET_NAME }}
-          -c ${{ env.CONTAINER_SECRET_NAME }}
-          --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }}
-          --name ${{ env.TFVARS_SECRET_NAME }}
+          az storage blob download \
+            --file ./terraform/spoke/${{ env.TFVARS_SECRET_NAME }} \
+            --container-name ${{ env.CONTAINER_SECRET_NAME }} \
+            --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }} \
+            --name ${{ env.TFVARS_SECRET_NAME }}
       - name: Terraform - Setup Backend and Apply
         run: |
           cd "terraform/spoke"
