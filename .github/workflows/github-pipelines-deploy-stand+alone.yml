@@ -61,7 +61,7 @@ jobs:
         run: |
           echo "AZ_SP_SECRET_NAME=AZ_SP_${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           echo "SUBSCRIPTION_ID_SECRET_NAME=${{ github.event.inputs.environment }}_SUBSCRIPTION_ID" >> $GITHUB_ENV
-          echo "STORAGE_ACCOUNT_SECRET_NAME=sls-terraform-state-sa-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
           echo "CONTAINER_SECRET_NAME=sls-terraform-state-sa-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           echo "TFVARS_SECRET_NAME=${{ github.event.inputs.environment }}.auto.tfvars" >> $GITHUB_ENV
       - name: Login to Azure
@@ -76,7 +76,8 @@ jobs:
             --file ./terraform/spoke/${{ env.TFVARS_SECRET_NAME }} \
             --container-name ${{ env.CONTAINER_SECRET_NAME }} \
             --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }} \
-            --name ${{ env.TFVARS_SECRET_NAME }}  
+            --name ${{ env.TFVARS_SECRET_NAME }} \
+            --auth-mode login
       - name: Terraform - Setup Backend, Initialize, and Plan
         run: |
           cd "terraform/spoke"
@@ -132,7 +133,7 @@ jobs:
         run: |
           echo "AZ_SP_SECRET_NAME=AZ_SP_${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           echo "SUBSCRIPTION_ID_SECRET_NAME=${{ github.event.inputs.environment }}_SUBSCRIPTION_ID" >> $GITHUB_ENV
-          echo "STORAGE_ACCOUNT_SECRET_NAME=sls-terraform-state-sa-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
           echo "CONTAINER_SECRET_NAME=sls-terraform-state-sa-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           echo "TFVARS_SECRET_NAME=${{ github.event.inputs.environment }}.auto.tfvars" >> $GITHUB_ENV
       - name: Login to Azure
@@ -147,7 +148,8 @@ jobs:
             --file ./terraform/spoke/${{ env.TFVARS_SECRET_NAME }} \
             --container-name ${{ env.CONTAINER_SECRET_NAME }} \
             --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }} \
-            --name ${{ env.TFVARS_SECRET_NAME }}
+            --name ${{ env.TFVARS_SECRET_NAME }} \
+            --auth-mode login
       - name: Terraform - Setup Backend and Apply
         run: |
           cd "terraform/spoke"
