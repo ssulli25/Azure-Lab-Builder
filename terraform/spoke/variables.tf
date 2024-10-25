@@ -1,9 +1,25 @@
-variable "AdminUsername" {
-  default = "adminuser"
+variable "AppGwSubnetPrefix" {
+  type = list(string)
 }
 
-variable "AppVmSize" {
-  default = "Standard_B2ms"
+variable "AppLbSubnetPrefix" {
+  type = list(string)
+}
+
+variable "AppSubnetPrefix" {
+  type = list(string)
+}
+
+variable "DataLbSubnetPrefix" {
+  type = list(string)
+}
+
+variable "DataSubnetPrefix" {
+  type = list(string)
+}
+
+variable "DbVmSize" {
+  type = string
 }
 
 variable "EnvName" {
@@ -11,37 +27,56 @@ variable "EnvName" {
 }
 
 variable "HubEnabled" {
+  type    = bool
   default = false
 }
 
-variable "HubRg" {
-  default = "hub-rg"
+variable "HubNetworkRg" {
+  type = string
 }
 
 variable "HubVnet" {
-  default = "hub-vnet"
+  type = string
+}
+
+variable "LinuxInstanceCount" {
+  type = number
+}
+
+variable "LinuxVmssSize" {
+  type = string
 }
 
 variable "Region" {
-  default = "eastus2"
+  type = string
 }
 
 variable "VnetAddressSpace" {
   type = list(string)
 }
 
-variable "WorkloadSubnetName" {
-  default = "workload-subnet"
+variable "WebSubnetPrefix" {
+  type = list(string)
 }
 
-variable "WorkloadSubnetPrefix" {
-  type = list(string)
+variable "WebInstanceCount" {
+  type = number
+}
+
+variable "WebVmssSize" {
+  type = string
 }
 
 ##### Sensitive Variables #####
 
 variable "AdminPassword" {
-  description = "The Password of the Dev VM"
+  description = "The Password of the Compute Instance"
+  type        = string
+  sensitive   = true
+}
+
+variable "AdminUsername" {
+  description = "The Username of the Compute Instance"
   type        = string
   sensitive   = true
 }
