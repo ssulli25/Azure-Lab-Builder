@@ -77,7 +77,8 @@ jobs:
             --container-name ${{ env.CONTAINER_SECRET_NAME }} \
             --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }} \
             --name ${{ env.TFVARS_SECRET_NAME }} \
-            --auth-mode login
+            --auth-mode login \
+            --no-progress > /dev/null
       - name: Terraform - Setup Backend, Initialize, and Plan
         run: |
           cd "terraform/spoke"
@@ -149,7 +150,8 @@ jobs:
             --container-name ${{ env.CONTAINER_SECRET_NAME }} \
             --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }} \
             --name ${{ env.TFVARS_SECRET_NAME }} \
-            --auth-mode login
+            --auth-mode login \
+            --no-progress > /dev/null
       - name: Terraform - Setup Backend and Apply
         run: |
           cd "terraform/spoke"
