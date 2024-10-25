@@ -60,14 +60,24 @@ jobs:
         id: set_secrets
         run: |
           echo "AZ_SP_SECRET_NAME=AZ_SP_HUB" >> $GITHUB_ENV
-          echo "SUBSCRIPTION_ID_SECRET_NAME=HUB_SUBSCRIPTION_ID" >> $GITHUB_ENV
-          echo "CONTAINER_NAME_SECRET_NAME=HUB_CONTAINER_NAME" >> $GITHUB_ENV
+          echo "SUBSCRIPTION_ID_SECRET_NAME=${{ secrets.HUB_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+          echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
+          echo "CONTAINER_SECRET_NAME=${{ secrets.HUB_CONTAINER_NAME }}" >> $GITHUB_ENV
       - name: Login to Azure - Hub
         uses: azure/login@v1
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Download TFVARS
+        run: |
+          az storage blob download \
+            --file ./terraform/hub/hub.auto.tfvars \
+            --container-name ${{ env.CONTAINER_SECRET_NAME }} \
+            --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }} \
+            --name hub.auto.tfvars \
+            --auth-mode login \
+            --no-progress > /dev/null
       - name: Terraform Hub - Setup Backend, Initialize, and Plan
         run: |
           cd "terraform/hub"
@@ -129,14 +139,24 @@ jobs:
         id: set_secrets
         run: |
           echo "AZ_SP_SECRET_NAME=AZ_SP_HUB" >> $GITHUB_ENV
-          echo "SUBSCRIPTION_ID_SECRET_NAME=HUB_SUBSCRIPTION_ID" >> $GITHUB_ENV
-          echo "CONTAINER_NAME_SECRET_NAME=HUB_CONTAINER_NAME" >> $GITHUB_ENV
+          echo "SUBSCRIPTION_ID_SECRET_NAME=${{ secrets.HUB_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+          echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
+          echo "CONTAINER_SECRET_NAME=${{ secrets.HUB_CONTAINER_NAME }}" >> $GITHUB_ENV
       - name: Login to Azure - Hub
         uses: azure/login@v1
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Download TFVARS
+        run: |
+          az storage blob download \
+            --file ./terraform/hub/hub.auto.tfvars \
+            --container-name ${{ env.CONTAINER_SECRET_NAME }} \
+            --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }} \
+            --name hub.auto.tfvars \
+            --auth-mode login \
+            --no-progress > /dev/null
       - name: Terraform Hub - Setup Backend and Apply
         run: |
           cd "terraform/hub"
@@ -190,13 +210,24 @@ jobs:
         run: |
           echo "AZ_SP_SECRET_NAME=AZ_SP_${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           echo "SUBSCRIPTION_ID_SECRET_NAME=${{ github.event.inputs.environment }}_SUBSCRIPTION_ID" >> $GITHUB_ENV
-          echo "CONTAINER_NAME_SECRET_NAME=${{ github.event.inputs.environment }}_CONTAINER_NAME" >> $GITHUB_ENV
+          echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
+          echo "CONTAINER_SECRET_NAME=sls-terraform-state-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          echo "TFVARS_SECRET_NAME=${{ github.event.inputs.environment }}.auto.tfvars" >> $GITHUB_ENV
       - name: Login to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Download TFVARS
+        run: |
+          az storage blob download \
+            --file ./terraform/spoke/${{ env.TFVARS_SECRET_NAME }} \
+            --container-name ${{ env.CONTAINER_SECRET_NAME }} \
+            --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }} \
+            --name ${{ env.TFVARS_SECRET_NAME }} \
+            --auth-mode login \
+            --no-progress > /dev/null
       - name: Terraform - Setup Backend, Initialize, and Plan
         run: |
           cd "terraform/spoke"
@@ -309,13 +340,24 @@ jobs:
         run: |
           echo "AZ_SP_SECRET_NAME=AZ_SP_${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           echo "SUBSCRIPTION_ID_SECRET_NAME=${{ github.event.inputs.environment }}_SUBSCRIPTION_ID" >> $GITHUB_ENV
-          echo "CONTAINER_NAME_SECRET_NAME=${{ github.event.inputs.environment }}_CONTAINER_NAME" >> $GITHUB_ENV
+          echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
+          echo "CONTAINER_SECRET_NAME=sls-terraform-state-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          echo "TFVARS_SECRET_NAME=${{ github.event.inputs.environment }}.auto.tfvars" >> $GITHUB_ENV
       - name: Login to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Download TFVARS
+        run: |
+          az storage blob download \
+            --file ./terraform/spoke/${{ env.TFVARS_SECRET_NAME }} \
+            --container-name ${{ env.CONTAINER_SECRET_NAME }} \
+            --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }} \
+            --name ${{ env.TFVARS_SECRET_NAME }} \
+            --auth-mode login \
+            --no-progress > /dev/null
       - name: Terraform - Setup Backend and Apply
         run: |
           cd "terraform/spoke"
