@@ -293,175 +293,175 @@ resource "azurerm_lb_rule" "data_rule" {
   probe_id                       = azurerm_lb_probe.data_probe.id
 }
 
-# #==================#
-# # Network Security #
-# #==================#
+#==================#
+# Network Security #
+#==================#
 
-# resource "azurerm_network_security_group" "web_nsg" {
-#   name                = "web-${var.EnvName}-nsg"
-#   resource_group_name = azurerm_resource_group.web_rg.name
-#   location            = azurerm_resource_group.web_rg.location
+resource "azurerm_network_security_group" "web_nsg" {
+  name                = "web-${var.EnvName}-nsg"
+  resource_group_name = azurerm_resource_group.web_rg.name
+  location            = azurerm_resource_group.web_rg.location
 
-#   security_rule {
-#     name                       = "Allow-HTTP"
-#     priority                   = 100
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "80"
-#     source_address_prefix      = "*"
-#     destination_address_prefix = var.WebSubnetPrefix[0]
-#   }
+  security_rule {
+    name                       = "Allow-HTTP"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = var.WebSubnetPrefix[0]
+  }
 
-#   security_rule {
-#     name                       = "Allow-HTTPS"
-#     priority                   = 110
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "443"
-#     source_address_prefix      = "*"
-#     destination_address_prefix = var.WebSubnetPrefix[0]
-#   }
+  security_rule {
+    name                       = "Allow-HTTPS"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
+    destination_address_prefix = var.WebSubnetPrefix[0]
+  }
 
-#   security_rule {
-#     name                       = "Allow-Health-Probe"
-#     priority                   = 120
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "65535"
-#     source_address_prefix      = "AzureLoadBalancer"
-#     destination_address_prefix = var.WebSubnetPrefix[0]
-#   }
+  security_rule {
+    name                       = "Allow-Health-Probe"
+    priority                   = 120
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "65535"
+    source_address_prefix      = "AzureLoadBalancer"
+    destination_address_prefix = var.WebSubnetPrefix[0]
+  }
 
-#   security_rule {
-#     name                       = "Deny-All-Inbound"
-#     priority                   = 200
-#     direction                  = "Inbound"
-#     access                     = "Deny"
-#     protocol                   = "*"
-#     source_port_range          = "*"
-#     destination_port_range     = "*"
-#     source_address_prefix      = "*"
-#     destination_address_prefix = var.WebSubnetPrefix[0]
-#   }
-# }
+  security_rule {
+    name                       = "Deny-All-Inbound"
+    priority                   = 200
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = var.WebSubnetPrefix[0]
+  }
+}
 
-# resource "azurerm_network_security_group" "app_nsg" {
-#   name                = "app-${var.EnvName}-nsg"
-#   resource_group_name = azurerm_resource_group.app_rg.name
-#   location            = azurerm_resource_group.app_rg.location
+resource "azurerm_network_security_group" "app_nsg" {
+  name                = "app-${var.EnvName}-nsg"
+  resource_group_name = azurerm_resource_group.app_rg.name
+  location            = azurerm_resource_group.app_rg.location
 
-#   security_rule {
-#     name                       = "Allow-HTTP"
-#     priority                   = 100
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "80"
-#     source_address_prefix      = var.WebSubnetPrefix[0]
-#     destination_address_prefix = var.AppSubnetPrefix[0]
-#   }
+  security_rule {
+    name                       = "Allow-HTTP"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = var.WebSubnetPrefix[0]
+    destination_address_prefix = var.AppSubnetPrefix[0]
+  }
 
-#   security_rule {
-#     name                       = "Allow-HTTPS"
-#     priority                   = 110
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "443"
-#     source_address_prefix      = var.WebSubnetPrefix[0]
-#     destination_address_prefix = var.AppSubnetPrefix[0]
-#   }
+  security_rule {
+    name                       = "Allow-HTTPS"
+    priority                   = 110
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = var.WebSubnetPrefix[0]
+    destination_address_prefix = var.AppSubnetPrefix[0]
+  }
 
-#   security_rule {
-#     name                       = "Allow-Health-Probe"
-#     priority                   = 120
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "65535"
-#     source_address_prefix      = "AzureLoadBalancer"
-#     destination_address_prefix = var.AppSubnetPrefix[0]
-#   }
+  security_rule {
+    name                       = "Allow-Health-Probe"
+    priority                   = 120
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "65535"
+    source_address_prefix      = "AzureLoadBalancer"
+    destination_address_prefix = var.AppSubnetPrefix[0]
+  }
 
-#   security_rule {
-#     name                       = "Deny-All-Inbound"
-#     priority                   = 200
-#     direction                  = "Inbound"
-#     access                     = "Deny"
-#     protocol                   = "*"
-#     source_port_range          = "*"
-#     destination_port_range     = "*"
-#     source_address_prefix      = var.WebSubnetPrefix[0]
-#     destination_address_prefix = var.AppSubnetPrefix[0]
-#   }
+  security_rule {
+    name                       = "Deny-All-Inbound"
+    priority                   = 200
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.WebSubnetPrefix[0]
+    destination_address_prefix = var.AppSubnetPrefix[0]
+  }
 
-# }
+}
 
-# resource "azurerm_network_security_group" "data_nsg" {
-#   name                = "db-${var.EnvName}-nsg"
-#   resource_group_name = azurerm_resource_group.db_rg.name
-#   location            = azurerm_resource_group.db_rg.location
+resource "azurerm_network_security_group" "data_nsg" {
+  name                = "db-${var.EnvName}-nsg"
+  resource_group_name = azurerm_resource_group.db_rg.name
+  location            = azurerm_resource_group.db_rg.location
 
-#   security_rule {
-#     name                       = "Allow-DB-Traffic"
-#     priority                   = 100
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "1433"
-#     source_address_prefix      = var.AppSubnetPrefix[0]
-#     destination_address_prefix = var.DataSubnetPrefix[0]
-#   }
+  security_rule {
+    name                       = "Allow-DB-Traffic"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "1433"
+    source_address_prefix      = var.AppSubnetPrefix[0]
+    destination_address_prefix = var.DataSubnetPrefix[0]
+  }
 
-#   security_rule {
-#     name                       = "Allow-Health-Probe"
-#     priority                   = 120
-#     direction                  = "Inbound"
-#     access                     = "Allow"
-#     protocol                   = "Tcp"
-#     source_port_range          = "*"
-#     destination_port_range     = "65535"
-#     source_address_prefix      = "AzureLoadBalancer"
-#     destination_address_prefix = var.DataSubnetPrefix[0]
-#   }
+  security_rule {
+    name                       = "Allow-Health-Probe"
+    priority                   = 120
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "65535"
+    source_address_prefix      = "AzureLoadBalancer"
+    destination_address_prefix = var.DataSubnetPrefix[0]
+  }
 
-#   security_rule {
-#     name                       = "Deny-All-Inbound"
-#     priority                   = 200
-#     direction                  = "Inbound"
-#     access                     = "Deny"
-#     protocol                   = "*"
-#     source_port_range          = "*"
-#     destination_port_range     = "*"
-#     source_address_prefix      = var.AppSubnetPrefix[0]
-#     destination_address_prefix = var.DataSubnetPrefix[0]
-#   }
-# }
+  security_rule {
+    name                       = "Deny-All-Inbound"
+    priority                   = 200
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.AppSubnetPrefix[0]
+    destination_address_prefix = var.DataSubnetPrefix[0]
+  }
+}
 
-# resource "azurerm_subnet_network_security_group_association" "web_nsg_association" {
-#   subnet_id                 = azurerm_subnet.web_subnet.id
-#   network_security_group_id = azurerm_network_security_group.web_nsg.id
-# }
+resource "azurerm_subnet_network_security_group_association" "web_nsg_association" {
+  subnet_id                 = azurerm_subnet.web_subnet.id
+  network_security_group_id = azurerm_network_security_group.web_nsg.id
+}
 
-# resource "azurerm_subnet_network_security_group_association" "app_nsg_association" {
-#   subnet_id                 = azurerm_subnet.app_subnet.id
-#   network_security_group_id = azurerm_network_security_group.app_nsg.id
-# }
+resource "azurerm_subnet_network_security_group_association" "app_nsg_association" {
+  subnet_id                 = azurerm_subnet.app_subnet.id
+  network_security_group_id = azurerm_network_security_group.app_nsg.id
+}
 
-# resource "azurerm_subnet_network_security_group_association" "data_nsg_association" {
-#   subnet_id                 = azurerm_subnet.data_subnet.id
-#   network_security_group_id = azurerm_network_security_group.data_nsg.id
-# }
+resource "azurerm_subnet_network_security_group_association" "data_nsg_association" {
+  subnet_id                 = azurerm_subnet.data_subnet.id
+  network_security_group_id = azurerm_network_security_group.data_nsg.id
+}
 
 
 #=========#

@@ -259,7 +259,7 @@ jobs:
             -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
             -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
             -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
-            -var="HubEnabled=true" \
+            -var="HubEnabled=false" \
             -var="EnvName=hs-${{ github.event.inputs.environment }}"
           else
               echo "Please input either an apply or destroy command (case sensitive)."
@@ -269,7 +269,7 @@ jobs:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
-          ARM_CONTAINER_NAME: "sls-terraform-state-sa-${{ github.event.inputs.environment }}"
+          ARM_CONTAINER_NAME: "sls-terraform-state-${{ github.event.inputs.environment }}"
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
@@ -322,17 +322,29 @@ jobs:
           }
           EOL
           terraform init
-          terraform ${{ github.event.inputs.terraform_action }} -auto-approve \
-          -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
-          -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
-          -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
-          -var="HubEnabled=true" \
-          -var="EnvName=hs-${{ github.event.inputs.environment }}"
+          if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
+            terraform ${{ github.event.inputs.terraform_action }} -auto-approve \
+            -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
+            -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
+            -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
+            -var="HubEnabled=true" \
+            -var="EnvName=hs-${{ github.event.inputs.environment }}"
+          elif [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
+            terraform ${{ github.event.inputs.terraform_action }} -auto-approve \
+            -var="SubscriptionId=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
+            -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
+            -var="AdminPassword=${{ secrets.VM_ADMIN_CREDENTIALS }}" \
+            -var="HubEnabled=false" \
+            -var="EnvName=hs-${{ github.event.inputs.environment }}"
+          else
+              echo "Please input either an apply or destroy command (case sensitive)."
+              exit 1
+          fi
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
           ARM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}
-          ARM_CONTAINER_NAME: "sls-terraform-state-sa-${{ github.event.inputs.environment }}"
+          ARM_CONTAINER_NAME: "sls-terraform-state-${{ github.event.inputs.environment }}"
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
