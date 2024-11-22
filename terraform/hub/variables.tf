@@ -3,7 +3,7 @@ variable "VnetAddressSpace" {
 }
 
 variable "BastionName" {
-  default = "hub-bastion"
+  type = string
 }
 
 variable "BastionSubnetPrefix" {
@@ -15,39 +15,43 @@ variable "GatewaySubnetPrefix" {
 }
 
 variable "LogAnalyticsName" {
-  default = "hub-law"
+  type = string
+}
+
+variable "NetworkRgName" {
+  type = string
 }
 
 variable "MgmtSubnetPrefix" {
   type = list(string)
 }
 
-variable "Region" {
-  default = "eastus2"
+variable "MonitorRgName" {
+  type = string
 }
 
-variable "ResourceGroupName" {
-  default = "hub-rg"
+variable "Region" {
+  type = string
 }
 
 variable "VnetName" {
-  default = "hub-vnet"
+  type = string
 }
 
 variable "VngName" {
-  default = "hub-vng"
+  type = string
 }
 
 variable "VngSku" {
-  default = "VpnGw1"
+  type = string
 }
 
 variable "VngType" {
-  default = "Vpn"
+  type = string
 }
 
 variable "VngVpnType" {
-  default = "RouteBased"
+  type = string
 }
 
 ##### Sensitive Variables #####
