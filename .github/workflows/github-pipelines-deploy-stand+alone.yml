@@ -25,7 +25,7 @@ on:
       #   default: 'IaaS'
 
 # Name of deploy pipeline
-name: deploy.beta.stand+alone
+name: deploy.sls.stand+alone
 
 # Deploy pipeline jobs
 jobs:
