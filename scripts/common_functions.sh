@@ -32,3 +32,6 @@ function require {
 function url_encode {
   echo "${1}" | jq -Rr @uri
 }
+
+
+### Test to see if build failes ###
