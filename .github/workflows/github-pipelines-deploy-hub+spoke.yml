@@ -36,6 +36,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Make scripts executable
+        run: chmod +x ./scripts/verify-environment.sh ./scripts/verify-terraform-action.sh
       - name: Verify Environment Name is dev, test, or prod
         run: ./scripts/verify-environment.sh ${{ github.event.inputs.environment }}
       - name: Verify Terraform Action is apply or destroy
