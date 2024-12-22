@@ -16,6 +16,15 @@ terraform.rc
 *.vault.txt
 vault_password_file.txt
 
+# Packer
+*.pkrvars.hcl
+*.auto.pkrvars.hcl
+packer_cache/
+packer_log.txt
+*.log
+*.tmp
+*.bak
+
 # Python
 *.pyc
 *.pyo
