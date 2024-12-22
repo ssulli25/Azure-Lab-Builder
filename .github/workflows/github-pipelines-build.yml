@@ -31,6 +31,10 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Validate Terraform Hub
         run: |
           echo "##### Validating Terraform for Hub Code #####"
