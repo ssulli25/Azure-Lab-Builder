@@ -34,6 +34,8 @@ jobs:
     name: User Input Verification
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
       - name: Verify Environment Name is dev, test, or prod
         run: ./scripts/verify-environment.sh ${{ github.event.inputs.environment }}
       - name: Verify Terraform Action is apply or destroy
