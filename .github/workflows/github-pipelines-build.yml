@@ -7,10 +7,10 @@ on:
 
 env:
   majorVersion: '24'
-  minorVersion: '10'
+  minorVersion: '11'
 
 # Name of build pipeline
-name: build.beta.1
+name: build.sls.1
 
 # Build pipeline jobs
 jobs:
