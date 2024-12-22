@@ -35,21 +35,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Verify Environment Name is dev, test, or prod
-        run: |
-          if [[ "${{ github.event.inputs.environment }}" =~ ^(dev|test|prod)$ ]]; then
-              echo "Environment name is valid."
-          else
-              echo "Environment name is invalid. Please input either dev, test, or prod (case sensitive)."
-              exit 1
-          fi
+        run: ./scripts/verify-environment.sh ${{ github.event.inputs.environment }}
       - name: Verify Terraform Action is apply or destroy
-        run: |
-          if [[ "${{ github.event.inputs.terraform_action }}" =~ ^(apply|destroy)$ ]]; then
-              echo "Terraform action is valid."
-          else
-              echo "Terraform action is invalid. Please input either an apply or destroy command (case sensitive)."
-              exit 1
-          fi
+        run: ./scripts/verify-terraform-action.sh ${{ github.event.inputs.terraform_action }}
   App_Verification:
     if: ${{ github.event.inputs.spoke == 'true' }}
     name: Pre-Verification - ${{ inputs.environment }} environment
@@ -70,6 +58,10 @@ jobs:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
         run: |
           az storage blob download \
@@ -143,6 +135,10 @@ jobs:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
         run: |
           az storage blob download \
