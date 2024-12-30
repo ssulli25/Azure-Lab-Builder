@@ -97,17 +97,9 @@ jobs:
           if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
               terraform plan \
                 -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
-                -var="VnetAddressSpace=${HUB_VNET_CIDR}" \
-                -var="BastionSubnetPrefix=${BASTION_SUBNET_CIDR}" \
-                -var="GatewaySubnetPrefix=${GATEWAY_SUBNET_CIDR}" \
-                -var="MgmtSubnetPrefix=${MGMT_SUBNET_CIDR}"
           elif [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
               terraform plan -destroy \
                 -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
-                -var="VnetAddressSpace=${HUB_VNET_CIDR}" \
-                -var="BastionSubnetPrefix=${BASTION_SUBNET_CIDR}" \
-                -var="GatewaySubnetPrefix=${GATEWAY_SUBNET_CIDR}" \
-                -var="MgmtSubnetPrefix=${MGMT_SUBNET_CIDR}"
           else
               echo "Please input either an apply or destroy command (case sensitive)."
               exit 1
@@ -178,10 +170,6 @@ jobs:
           terraform init
           terraform ${{ github.event.inputs.terraform_action }} -auto-approve \
             -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
-            -var="VnetAddressSpace=${HUB_VNET_CIDR}" \
-            -var="BastionSubnetPrefix=${BASTION_SUBNET_CIDR}" \
-            -var="GatewaySubnetPrefix=${GATEWAY_SUBNET_CIDR}" \
-            -var="MgmtSubnetPrefix=${MGMT_SUBNET_CIDR}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -190,10 +178,6 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-          HUB_VNET_CIDR: ${{ secrets.HUB_VNET_CIDR }}
-          BASTION_SUBNET_CIDR: ${{ secrets.BASTION_SUBNET_CIDR }}
-          GATEWAY_SUBNET_CIDR: ${{ secrets.GATEWAY_SUBNET_CIDR }}
-          MGMT_SUBNET_CIDR: ${{ secrets.MGMT_SUBNET_CIDR }} 
       - name: Set output
         id: deployment_output
         run: echo "::set-output name=run::true"

@@ -1,0 +1,81 @@
+# General Notes
+# -Passing lists directly through GitHub Actions Secrets or Variables causes deployment issues.
+
+
+# Trigger to run pipeline
+on:
+  # This event allows you to trigger the workflow manually from the GitHub Actions tab in your repository.
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Please select a environment name: dev, test, or prod (case sensitive)?'
+        required: true
+        default: 'dev'
+      image-build:
+        description: 'Is the image build for web, app, or data (case sensitive)?'
+        required: true
+        default: 'web'
+
+# Name of deploy pipeline
+name: build.sls.packer
+
+# Deploy pipeline jobs
+jobs:
+  ### Stand-Alone Spoke Model
+  Input_Verification:
+    name: User Input Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Make scripts executable
+        run: chmod +x ./scripts/verify-environment.sh ./scripts/verify-image-build.sh
+      - name: Verify Environment Name is dev, test, or prod
+        run: ./scripts/verify-environment.sh ${{ github.event.inputs.environment }}
+      - name: Verify Image build tier is web, app, or data
+        run: ./scripts/verify-image-build.sh ${{ github.event.inputs.image-build }}
+  Image_Build:
+    name: Image Build - ${{ inputs.image-build }} tier in ${{ inputs.environment }} environment
+    needs: Input_Verification
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set secret names
+        id: set_secrets
+        run: |
+          echo "AZ_SP_SECRET_NAME=AZ_SP_${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          echo "SUBSCRIPTION_ID_SECRET_NAME=${{ github.event.inputs.environment }}_SUBSCRIPTION_ID" >> $GITHUB_ENV
+          echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
+          echo "CONTAINER_SECRET_NAME=sls-packer-${{ inputs.image-build }}-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          echo "PKVARS_SECRET_NAME=${{ inputs.image-build }}-${{ github.event.inputs.environment }}.auto.pkrvars.hcl" >> $GITHUB_ENV
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Setup Packer
+        uses: hashicorp/setup-packer@main
+        id: setup
+        with:
+          version: ${{ env.PACKER_VERSION }}
+      - name: Download PKVARS
+        run: |
+            az storage blob download \
+            --file ./packer/${{ env.PKVARS_SECRET_NAME }} \
+            --container-name ${{ env.CONTAINER_SECRET_NAME }} \
+            --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }} \
+            --name ${{ env.PKVARS_SECRET_NAME }} \
+            --auth-mode login \
+            --no-progress > /dev/null
+      - name: Validate Packer
+        run: |
+          cd "packer"
+          packer validate \
+            -var "tenant_id=$ARM_TENANT_ID" \
+            -var "subscription_id=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
+            -var "client_id=$ARM_CLIENT_ID" \
+            -var "client_secret=$ARM_CLIENT_SECRET"
+        env:
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
