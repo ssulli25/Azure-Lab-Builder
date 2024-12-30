@@ -19,7 +19,7 @@ on:
         description: 'Would you like to run a Terraform apply or destroy command (case sensitive)?'
         required: true
         default: 'apply'
-      # spoke_model: # Aimed for Release 24.07 or later
+      # spoke_model: # Aimed for post IaaS implementation
       #   description: 'Is the spoke cloud service model IaaS or PaaS?'
       #   required: true
       #   default: 'IaaS'
