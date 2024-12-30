@@ -96,10 +96,10 @@ jobs:
           terraform init
           if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
               terraform plan \
-                -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
+                -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
           elif [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
               terraform plan -destroy \
-                -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
+                -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
           else
               echo "Please input either an apply or destroy command (case sensitive)."
               exit 1
@@ -169,7 +169,7 @@ jobs:
           EOL
           terraform init
           terraform ${{ github.event.inputs.terraform_action }} -auto-approve \
-            -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
+            -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
