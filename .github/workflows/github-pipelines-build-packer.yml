@@ -75,6 +75,7 @@ jobs:
             -var "subscription_id=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
             -var "client_id=$ARM_CLIENT_ID" \
             -var "client_secret=$ARM_CLIENT_SECRET" \
+            -var-file="${{ github.event.inputs.image-build }}-${{ github.event.inputs.environment }}.auto.pkrvars.hcl" \
             build.pkr.hcl
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
