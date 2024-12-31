@@ -6,11 +6,11 @@ on:
       - 'tags/*'
 
 env:
-  majorVersion: '24'
-  minorVersion: '12'
+  majorVersion: '25'
+  minorVersion: '01'
 
 # Name of build pipeline
-name: build.sls.1
+name: build.sls.lab
 
 # Build pipeline jobs
 jobs:
