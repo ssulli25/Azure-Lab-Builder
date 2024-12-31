@@ -19,7 +19,7 @@ on:
         description: 'Would you like to run a Terraform apply or destroy command (case sensitive)?'
         required: true
         default: 'apply'
-      # spoke_model: # Aimed for Release 24.07 or later
+      # spoke_model: # Aimed for post IaaS implementation
       #   description: 'Is the spoke cloud service model IaaS or PaaS?'
       #   required: true
       #   default: 'IaaS'
@@ -34,22 +34,14 @@ jobs:
     name: User Input Verification
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Make scripts executable
+        run: chmod +x ./scripts/verify-environment.sh ./scripts/verify-terraform-action.sh
       - name: Verify Environment Name is dev, test, or prod
-        run: |
-          if [[ "${{ github.event.inputs.environment }}" =~ ^(dev|test|prod)$ ]]; then
-              echo "Environment name is valid."
-          else
-              echo "Environment name is invalid. Please input either dev, test, or prod (case sensitive)."
-              exit 1
-          fi
+        run: ./scripts/verify-environment.sh ${{ github.event.inputs.environment }}
       - name: Verify Terraform Action is apply or destroy
-        run: |
-          if [[ "${{ github.event.inputs.terraform_action }}" =~ ^(apply|destroy)$ ]]; then
-              echo "Terraform action is valid."
-          else
-              echo "Terraform action is invalid. Please input either an apply or destroy command (case sensitive)."
-              exit 1
-          fi
+        run: ./scripts/verify-terraform-action.sh ${{ github.event.inputs.terraform_action }}
   Hub_Verification:
     if: ${{ github.event.inputs.hub == 'true' }}
     name: Hub Pre-Verification
@@ -69,6 +61,10 @@ jobs:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
         run: |
           az storage blob download \
@@ -100,18 +96,10 @@ jobs:
           terraform init
           if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
               terraform plan \
-                -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
-                -var="VnetAddressSpace=${HUB_VNET_CIDR}" \
-                -var="BastionSubnetPrefix=${BASTION_SUBNET_CIDR}" \
-                -var="GatewaySubnetPrefix=${GATEWAY_SUBNET_CIDR}" \
-                -var="MgmtSubnetPrefix=${MGMT_SUBNET_CIDR}"
+                -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
           elif [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
               terraform plan -destroy \
-                -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
-                -var="VnetAddressSpace=${HUB_VNET_CIDR}" \
-                -var="BastionSubnetPrefix=${BASTION_SUBNET_CIDR}" \
-                -var="GatewaySubnetPrefix=${GATEWAY_SUBNET_CIDR}" \
-                -var="MgmtSubnetPrefix=${MGMT_SUBNET_CIDR}"
+                -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
           else
               echo "Please input either an apply or destroy command (case sensitive)."
               exit 1
@@ -148,6 +136,10 @@ jobs:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
         run: |
           az storage blob download \
@@ -177,11 +169,7 @@ jobs:
           EOL
           terraform init
           terraform ${{ github.event.inputs.terraform_action }} -auto-approve \
-            -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
-            -var="VnetAddressSpace=${HUB_VNET_CIDR}" \
-            -var="BastionSubnetPrefix=${BASTION_SUBNET_CIDR}" \
-            -var="GatewaySubnetPrefix=${GATEWAY_SUBNET_CIDR}" \
-            -var="MgmtSubnetPrefix=${MGMT_SUBNET_CIDR}"
+            -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 
@@ -190,10 +178,6 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-          HUB_VNET_CIDR: ${{ secrets.HUB_VNET_CIDR }}
-          BASTION_SUBNET_CIDR: ${{ secrets.BASTION_SUBNET_CIDR }}
-          GATEWAY_SUBNET_CIDR: ${{ secrets.GATEWAY_SUBNET_CIDR }}
-          MGMT_SUBNET_CIDR: ${{ secrets.MGMT_SUBNET_CIDR }} 
       - name: Set output
         id: deployment_output
         run: echo "::set-output name=run::true"
@@ -219,6 +203,10 @@ jobs:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
         run: |
           az storage blob download \
@@ -294,6 +282,10 @@ jobs:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
         run: |
           az storage blob download \
