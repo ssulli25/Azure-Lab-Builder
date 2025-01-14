@@ -59,4 +59,5 @@ variable "VngVpnType" {
 variable "HubSubscriptionId" {
   description = "The Subscription ID for the environment"
   type        = string
+  sensitive   = true
 }

@@ -1,10 +1,3 @@
-#======#
-# Data #
-#======#
-
-data "azurerm_subscription" "current" {
-}
-
 #===========#
 # Resources #
 #===========#
