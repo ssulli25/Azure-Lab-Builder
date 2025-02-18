@@ -21,7 +21,6 @@ name: build.sls.packer
 
 # Deploy pipeline jobs
 jobs:
-  ### Stand-Alone Spoke Model
   Input_Verification:
     name: User Input Verification
     runs-on: ubuntu-latest
