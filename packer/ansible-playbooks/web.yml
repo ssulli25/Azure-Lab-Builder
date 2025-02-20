@@ -63,9 +63,9 @@
         state: disabled
 
     #############################################################################
-    # Create a repository called /opt/sls-web-dev
+    # Create a repository called /opt/sls-web
     #############################################################################
-    - name: Create directory /opt/sls-web-dev
+    - name: Create directory /opt/sls-web
       file:
-        path: /opt/sls-web-dev
+        path: /opt/sls-web
         state: directory
