@@ -69,6 +69,7 @@ jobs:
       - name: Validate Packer
         run: |
           cd "packer"
+          packer init .
           packer validate \
             -var "tenant_id=$ARM_TENANT_ID" \
             -var "subscription_id=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
