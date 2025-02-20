@@ -46,7 +46,7 @@
 
     - name: Add Azure CLI repository
       apt_repository:
-        repo: deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $(lsb_release -cs) main
+        repo: "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_facts['lsb']['codename'] }} main"
         state: present
 
     - name: Install Azure CLI
