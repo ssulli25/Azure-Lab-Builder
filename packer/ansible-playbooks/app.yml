@@ -38,6 +38,12 @@
         state: present
         update_cache: yes
 
+    - name: Verify .NET SDK installation
+      command: dotnet --version
+      register: dotnet_version
+      failed_when: dotnet_version.rc != 0
+      changed_when: false
+
     #############################################################################
     # Create and configure ASP.NET Core application
     #############################################################################
@@ -48,9 +54,15 @@
 
     - name: Create a new ASP.NET Core application
       command: dotnet new webapp -o /opt/sls-app
+      register: dotnet_new
+      failed_when: dotnet_new.rc != 0
+      changed_when: false
 
     - name: Publish the ASP.NET Core application
       command: dotnet publish -c Release -o /opt/sls-app/publish
+      register: dotnet_publish
+      failed_when: dotnet_publish.rc != 0
+      changed_when: false
 
     #############################################################################
     # Configure the application to run as a service
