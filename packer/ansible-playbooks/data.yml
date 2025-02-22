@@ -1,0 +1,91 @@
+---
+- name: Configure SQL Server Express on Linux
+  hosts: all
+  become: yes
+  tasks:
+    #############################################################################
+    # Update all packages to the latest version
+    #############################################################################
+    - name: Update all packages to the latest version
+      apt:
+        upgrade: dist
+
+    #############################################################################
+    # Install SQL Server Express
+    #############################################################################
+    - name: Install dependencies for SQL Server
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - curl
+        - apt-transport-https
+
+    - name: Add Microsoft package signing key
+      command: curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+
+    - name: Add Microsoft SQL Server repository
+      command: sudo add-apt-repository "$(curl https://packages.microsoft.com/config/ubuntu/18.04/mssql-server-2019.list)"
+
+    - name: Update package cache
+      apt:
+        update_cache: yes
+
+    - name: Install SQL Server Express
+      apt:
+        name: mssql-server
+        state: present
+
+    - name: Run SQL Server setup
+      command: sudo /opt/mssql/bin/mssql-conf setup accept-eula
+
+    - name: Enable SQL Server service
+      systemd:
+        name: mssql-server
+        enabled: yes
+        state: started
+
+    #############################################################################
+    # Install and configure Azure CLI
+    #############################################################################
+    - name: Install dependencies for Azure CLI
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - ca-certificates
+        - curl
+        - apt-transport-https
+        - lsb-release
+        - gnupg
+
+    - name: Add Microsoft signing key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Add Azure CLI repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_facts['lsb']['codename'] }} main"
+        state: present
+
+    - name: Install Azure CLI
+      apt:
+        name: azure-cli
+        state: present
+        update_cache: yes
+
+    #############################################################################
+    # Disable UFW firewall
+    #############################################################################
+    - name: Disable UFW firewall
+      ufw:
+        state: disabled
+
+    #############################################################################
+    # Create a repository called /opt/sls-data
+    #############################################################################
+    - name: Create directory /opt/sls-data
+      file:
+        path: /opt/sls-data
+        state: directory
