@@ -22,10 +22,10 @@
         - apt-transport-https
 
     - name: Add Microsoft package signing key
-      command: curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+      shell: curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
 
     - name: Add Microsoft SQL Server repository
-      command: sudo add-apt-repository "$(curl https://packages.microsoft.com/config/ubuntu/18.04/mssql-server-2019.list)"
+      shell: sudo add-apt-repository "$(curl https://packages.microsoft.com/config/ubuntu/18.04/mssql-server-2019.list)"
 
     - name: Update package cache
       apt:
@@ -37,22 +37,22 @@
         state: present
 
     - name: Run SQL Server setup
-      command: sudo /opt/mssql/bin/mssql-conf setup accept-eula
+      shell: sudo /opt/mssql/bin/mssql-conf setup accept-eula
 
     - name: Configure SQL Server to run as SQL Server Express
-      command: sudo /opt/mssql/bin/mssql-conf set edition express
-
-    - name: Restart SQL Server service
-      systemd:
-        name: mssql-server
-        state: restarted
-        enabled: yes
+      shell: sudo /opt/mssql/bin/mssql-conf set edition express
 
     - name: Enable SQL Server service
       systemd:
         name: mssql-server
         enabled: yes
         state: started
+
+    - name: Restart SQL Server service
+      systemd:
+        name: mssql-server
+        state: restarted
+        enabled: yes
 
     #############################################################################
     # Install and configure Azure CLI
