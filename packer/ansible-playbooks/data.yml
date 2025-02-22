@@ -1,5 +1,5 @@
 ---
-- name: Configure SQL Server Express on Linux
+- name: Configure PostgreSQL on Linux
   hosts: all
   become: yes
   tasks:
@@ -11,9 +11,9 @@
         upgrade: dist
 
     #############################################################################
-    # Install SQL Server Express
+    # Install PostgreSQL
     #############################################################################
-    - name: Install dependencies for SQL Server
+    - name: Install dependencies for PostgreSQL
       apt:
         name: "{{ item }}"
         state: present
@@ -21,62 +21,77 @@
         - curl
         - apt-transport-https
 
-    - name: Add Microsoft package signing key
-      shell: curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+    - name: Add PostgreSQL package signing key
+      shell: curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 
-    - name: Add Microsoft SQL Server repository
-      shell: sudo add-apt-repository "$(curl https://packages.microsoft.com/config/ubuntu/20.04/mssql-server-2019.list)"
+    - name: Add PostgreSQL repository
+      shell: sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
 
     - name: Update package cache
       apt:
         update_cache: yes
 
-    - name: Install SQL Server Express
+    - name: Install PostgreSQL
       apt:
-        name: mssql-server
+        name: postgresql-13
         state: present
 
-    - name: Run SQL Server setup
-      shell: sudo /opt/mssql/bin/mssql-conf setup accept-eula
-
-    - name: Configure SQL Server to run as SQL Server Express
-      shell: sudo /opt/mssql/bin/mssql-conf set edition express
-
-    - name: Enable SQL Server service
+    - name: Ensure PostgreSQL service is enabled and started
       systemd:
-        name: mssql-server
+        name: postgresql
         enabled: yes
         state: started
 
-    - name: Restart SQL Server service
+    - name: Restart PostgreSQL service
       systemd:
-        name: mssql-server
+        name: postgresql
         state: restarted
         enabled: yes
 
     #############################################################################
-    # Install SQL Server command-line tools
+    # Configure PostgreSQL
     #############################################################################
-    - name: Add Microsoft SQL Server Tools repository
-      shell: sudo add-apt-repository "$(curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list)"
+    - name: Set PostgreSQL password for the postgres user
+      become_user: postgres
+      shell: psql -c "ALTER USER postgres PASSWORD '{{ postgres_password }}';"
+      vars:
+        postgres_password: "your_secure_password"
 
-    - name: Update package cache
-      apt:
-        update_cache: yes
+    - name: Create a new PostgreSQL database
+      become_user: postgres
+      postgresql_db:
+        name: mydatabase
 
-    - name: Install SQL Server command-line tools
+    - name: Create a new PostgreSQL user
+      become_user: postgres
+      postgresql_user:
+        name: myuser
+        password: "myuser_password"
+        priv: "ALL"
+
+    - name: Grant all privileges on database to user
+      become_user: postgres
+      postgresql_privs:
+        db: mydatabase
+        role: myuser
+        privs: ALL
+
+    #############################################################################
+    # Install PostgreSQL command-line tools
+    #############################################################################
+    - name: Install PostgreSQL client tools
       apt:
-        name: mssql-tools
+        name: postgresql-client-13
         state: present
 
-    - name: Add SQL Server tools to PATH
+    - name: Add PostgreSQL tools to PATH
       lineinfile:
-        path: /etc/profile.d/mssql-tools.sh
-        line: 'export PATH="$PATH:/opt/mssql-tools/bin"'
+        path: /etc/profile.d/pgsql-tools.sh
+        line: 'export PATH="$PATH:/usr/lib/postgresql/13/bin"'
         create: yes
 
-    - name: Source SQL Server tools PATH
-      shell: source /etc/profile.d/mssql-tools.sh
+    - name: Source PostgreSQL tools PATH
+      shell: source /etc/profile.d/pgsql-tools.sh
 
     #############################################################################
     # Install and configure Azure CLI
