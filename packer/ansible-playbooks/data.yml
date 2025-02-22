@@ -63,7 +63,7 @@
         create: yes
 
     - name: Source PostgreSQL tools PATH
-      shell: source /etc/profile.d/pgsql-tools.sh
+      shell: . /etc/profile.d/pgsql-tools.sh
 
     #############################################################################
     # Install and configure Azure CLI
