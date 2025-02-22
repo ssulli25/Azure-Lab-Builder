@@ -20,7 +20,7 @@
       loop:
         - curl
         - apt-transport-https
-        - libldap-2.5-0
+        - libldap-common
 
     - name: Add Microsoft package signing key
       shell: curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
