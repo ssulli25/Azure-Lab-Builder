@@ -20,25 +20,12 @@
       loop:
         - curl
         - apt-transport-https
-        - heimdal-clients
-        - libldap-common
-
-    - name: Download libldap-2.4-2 package
-      shell: wget http://archive.ubuntu.com/ubuntu/pool/main/o/openldap/libldap-2.4-2_2.4.45+dfsg-1ubuntu1_amd64.deb -P /tmp/
-
-    - name: Install libldap-2.4-2 package
-      shell: sudo dpkg -i /tmp/libldap-2.4-2_2.4.45+dfsg-1ubuntu1_amd64.deb
-
-    - name: Fix broken dependencies
-      apt:
-        name: -f
-        state: present
 
     - name: Add Microsoft package signing key
       shell: curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
 
     - name: Add Microsoft SQL Server repository
-      shell: sudo add-apt-repository "$(curl https://packages.microsoft.com/config/ubuntu/18.04/mssql-server-2019.list)"
+      shell: sudo add-apt-repository "$(curl https://packages.microsoft.com/config/ubuntu/20.04/mssql-server-2019.list)"
 
     - name: Update package cache
       apt:
@@ -66,6 +53,30 @@
         name: mssql-server
         state: restarted
         enabled: yes
+
+    #############################################################################
+    # Install SQL Server command-line tools
+    #############################################################################
+    - name: Add Microsoft SQL Server Tools repository
+      shell: sudo add-apt-repository "$(curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list)"
+
+    - name: Update package cache
+      apt:
+        update_cache: yes
+
+    - name: Install SQL Server command-line tools
+      apt:
+        name: mssql-tools
+        state: present
+
+    - name: Add SQL Server tools to PATH
+      lineinfile:
+        path: /etc/profile.d/mssql-tools.sh
+        line: 'export PATH="$PATH:/opt/mssql-tools/bin"'
+        create: yes
+
+    - name: Source SQL Server tools PATH
+      shell: source /etc/profile.d/mssql-tools.sh
 
     #############################################################################
     # Install and configure Azure CLI
