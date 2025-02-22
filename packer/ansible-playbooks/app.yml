@@ -59,7 +59,9 @@
       changed_when: false
 
     - name: Publish the ASP.NET Core application
-      command: dotnet publish -c Release -o /opt/sls-app/publish
+      command:
+        cmd: dotnet publish -c Release -o /opt/sls-app/publish
+        chdir: /opt/sls-app
       register: dotnet_publish
       failed_when: dotnet_publish.rc != 0
       changed_when: false
