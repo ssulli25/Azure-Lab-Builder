@@ -20,15 +20,19 @@
       loop:
         - curl
         - apt-transport-https
-        - libgssapi3-heimdal
+        - heimdal-clients
         - libldap-common
 
     - name: Download libldap-2.4-2 package
       shell: wget http://archive.ubuntu.com/ubuntu/pool/main/o/openldap/libldap-2.4-2_2.4.45+dfsg-1ubuntu1_amd64.deb -P /tmp/
 
     - name: Install libldap-2.4-2 package
+      shell: sudo dpkg -i /tmp/libldap-2.4-2_2.4.45+dfsg-1ubuntu1_amd64.deb
+
+    - name: Fix broken dependencies
       apt:
-        deb: /tmp/libldap-2.4-2_2.4.45+dfsg-1ubuntu1_amd64.deb
+        name: -f
+        state: present
 
     - name: Add Microsoft package signing key
       shell: curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
