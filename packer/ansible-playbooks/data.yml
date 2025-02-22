@@ -39,6 +39,15 @@
     - name: Run SQL Server setup
       command: sudo /opt/mssql/bin/mssql-conf setup accept-eula
 
+    - name: Configure SQL Server to run as SQL Server Express
+      command: sudo /opt/mssql/bin/mssql-conf set edition express
+
+    - name: Restart SQL Server service
+      systemd:
+        name: mssql-server
+        state: restarted
+        enabled: yes
+
     - name: Enable SQL Server service
       systemd:
         name: mssql-server
