@@ -11,33 +11,6 @@
         upgrade: dist
 
     #############################################################################
-    # Remove existing .NET packages to avoid conflicts
-    #############################################################################
-    - name: Remove existing .NET packages
-      apt:
-        name: "{{ item }}"
-        state: absent
-      loop:
-        - dotnet*
-        - aspnetcore*
-        - netstandard*
-
-    #############################################################################
-    # Pin Ubuntu .NET packages to avoid conflicts with Microsoft packages
-    #############################################################################
-    - name: Create preferences file to pin Ubuntu .NET packages
-      copy:
-        dest: /etc/apt/preferences.d/99microsoft-dotnet.pref
-        content: |
-          Package: dotnet* aspnet* netstandard*
-          Pin: origin "archive.ubuntu.com"
-          Pin-Priority: -10
-
-          Package: dotnet* aspnet* netstandard*
-          Pin: origin "security.ubuntu.com"
-          Pin-Priority: -10
-
-    #############################################################################
     # Install .NET SDK
     #############################################################################
     - name: Install dependencies for .NET SDK
@@ -61,7 +34,7 @@
 
     - name: Install .NET SDK
       apt:
-        name: dotnet-sdk-6.0
+        name: dotnet-sdk-9.0
         state: present
         update_cache: yes
 
