@@ -49,34 +49,6 @@
         enabled: yes
 
     #############################################################################
-    # Configure PostgreSQL
-    #############################################################################
-    - name: Set PostgreSQL password for the postgres user
-      become_user: postgres
-      shell: psql -c "ALTER USER postgres PASSWORD '{{ postgres_password }}';"
-      vars:
-        postgres_password: "your_secure_password"
-
-    - name: Create a new PostgreSQL database
-      become_user: postgres
-      postgresql_db:
-        name: mydatabase
-
-    - name: Create a new PostgreSQL user
-      become_user: postgres
-      postgresql_user:
-        name: myuser
-        password: "myuser_password"
-        priv: "ALL"
-
-    - name: Grant all privileges on database to user
-      become_user: postgres
-      postgresql_privs:
-        db: mydatabase
-        role: myuser
-        privs: ALL
-
-    #############################################################################
     # Install PostgreSQL command-line tools
     #############################################################################
     - name: Install PostgreSQL client tools
