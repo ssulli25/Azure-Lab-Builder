@@ -499,24 +499,19 @@ resource "azurerm_linux_virtual_machine_scale_set" "web_vmss" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
+  source_image_id = var.WebImageId
 }
 
 #==============================#
 # Application Virtual Machines #
 #==============================#
 
-resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
+resource "azurerm_linux_virtual_machine_scale_set" "app_vmss" {
   name                            = "app-${var.EnvName}-vmss"
   resource_group_name             = azurerm_resource_group.app_rg.name
   location                        = azurerm_resource_group.app_rg.location
-  sku                             = var.LinuxVmssSize
-  instances                       = var.LinuxInstanceCount
+  sku                             = var.AppVmssSize
+  instances                       = var.AppInstanceCount
   admin_username                  = var.AdminUsername
   admin_password                  = var.AdminPassword
   disable_password_authentication = false
@@ -538,12 +533,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "linux_vmss" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
+  source_image_id = var.AppImageId
 }
 
 #==============================#
@@ -565,12 +555,7 @@ resource "azurerm_linux_virtual_machine" "db_vm_primary" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
+  source_image_id = var.DataImageId
 }
 
 resource "azurerm_network_interface" "db_nic_primary" {
@@ -606,12 +591,7 @@ resource "azurerm_linux_virtual_machine" "db_vm_secondary" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
-  }
+  source_image_id = var.DataImageId
 }
 
 resource "azurerm_network_interface" "db_nic_secondary" {
