@@ -24,7 +24,13 @@ locals {
   redirect_configuration_name    = "${var.EnvName}-rdr-cfg"
   health_probe_name              = "${var.EnvName}-health-probe"
   ### VMSS Backend Pool IDs ###
-  app_gateway_backend_pool_ids           = [for pool in toset(azurerm_application_gateway.web.backend_address_pool) : pool.id]
+  app_gateway_backend_pool_ids = [for pool in toset(azurerm_application_gateway.web.backend_address_pool) : pool.id]
+  ### Compute Images ###
+  stripped_env_name        = replace(var.EnvName, "^sa-", "")
+  web_vmss_source_image_id = var.HubEnabled ? "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.WebImageId}" : "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.WebImageId}"
+  app_vmss_source_image_id = var.HubEnabled ? "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.AppImageId}" : "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.AppImageId}"
+  data_vm_source_image_id  = var.HubEnabled ? "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.DataImageId}" : "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.DataImageId}"
+
 }
 
 #===========#
@@ -499,7 +505,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "web_vmss" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.WebImageId}"
+  source_image_id = local.web_vmss_source_image_id
 }
 
 #==============================#
@@ -533,7 +539,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "app_vmss" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.AppImageId}"
+  source_image_id = local.app_vmss_source_image_id
 }
 
 #==============================#
@@ -555,7 +561,7 @@ resource "azurerm_linux_virtual_machine" "db_vm_primary" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.DataImageId}"
+  source_image_id = local.data_vm_source_image_id
 }
 
 resource "azurerm_network_interface" "db_nic_primary" {
@@ -591,7 +597,7 @@ resource "azurerm_linux_virtual_machine" "db_vm_secondary" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.DataImageId}"
+  source_image_id = local.data_vm_source_image_id
 }
 
 resource "azurerm_network_interface" "db_nic_secondary" {
