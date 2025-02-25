@@ -26,10 +26,10 @@ locals {
   ### VMSS Backend Pool IDs ###
   app_gateway_backend_pool_ids = [for pool in toset(azurerm_application_gateway.web.backend_address_pool) : pool.id]
   ### Compute Images ###
-  stripped_env_name        = replace(var.EnvName, "sa-", "")
-  web_vmss_source_image_id = var.HubEnabled ? "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.WebImageId}" : "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.WebImageId}"
-  app_vmss_source_image_id = var.HubEnabled ? "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.AppImageId}" : "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.AppImageId}"
-  data_vm_source_image_id  = var.HubEnabled ? "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.DataImageId}" : "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.DataImageId}"
+  stripped_env_name        = replace(replace(var.EnvName, "sa-", ""), "hs-", "")
+  web_vmss_source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.WebImageId}"
+  app_vmss_source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.AppImageId}"
+  data_vm_source_image_id  = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.DataImageId}"
 
 }
 
