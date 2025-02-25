@@ -499,7 +499,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "web_vmss" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_id = var.WebImageId
+  source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.WebImageId}"
 }
 
 #==============================#
@@ -533,7 +533,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "app_vmss" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_id = var.AppImageId
+  source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.AppImageId}"
 }
 
 #==============================#
@@ -555,7 +555,7 @@ resource "azurerm_linux_virtual_machine" "db_vm_primary" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_id = var.DataImageId
+  source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.DataImageId}"
 }
 
 resource "azurerm_network_interface" "db_nic_primary" {
@@ -591,7 +591,7 @@ resource "azurerm_linux_virtual_machine" "db_vm_secondary" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_id = var.DataImageId
+  source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${var.EnvName}-image-rg/providers/Microsoft.Compute/images/${var.DataImageId}"
 }
 
 resource "azurerm_network_interface" "db_nic_secondary" {
