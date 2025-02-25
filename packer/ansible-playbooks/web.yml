@@ -1,0 +1,71 @@
+---
+- name: Configure Web Server
+  hosts: all
+  become: yes
+  tasks:
+    #############################################################################
+    # Update all packages to the latest version
+    #############################################################################
+    - name: Update all packages to the latest version
+      apt:
+        upgrade: dist
+
+    #############################################################################
+    # Install and configure Nginx
+    #############################################################################
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
+
+    - name: Start and enable Nginx
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+    #############################################################################
+    # Install and configure Azure CLI
+    #############################################################################
+    - name: Install dependencies for Azure CLI
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - ca-certificates
+        - curl
+        - apt-transport-https
+        - lsb-release
+        - gnupg
+
+    - name: Add Microsoft signing key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Add Azure CLI repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_facts['lsb']['codename'] }} main"
+        state: present
+
+    - name: Install Azure CLI
+      apt:
+        name: azure-cli
+        state: present
+        update_cache: yes
+
+    #############################################################################
+    # Disable UFW firewall
+    #############################################################################
+    - name: Disable UFW firewall
+      ufw:
+        state: disabled
+
+    #############################################################################
+    # Create a repository called /opt/sls-web
+    #############################################################################
+    - name: Create directory /opt/sls-web
+      file:
+        path: /opt/sls-web
+        state: directory

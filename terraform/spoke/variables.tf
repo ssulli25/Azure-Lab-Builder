@@ -10,8 +10,24 @@ variable "AppSubnetPrefix" {
   type = list(string)
 }
 
+variable "AppImageId" {
+  type = string
+}
+
+variable "AppInstanceCount" {
+  type = number
+}
+
+variable "AppVmssSize" {
+  type = string
+}
+
 variable "DataLbSubnetPrefix" {
   type = list(string)
+}
+
+variable "DataImageId" {
+  type = string
 }
 
 variable "DataSubnetPrefix" {
@@ -39,14 +55,6 @@ variable "HubVnet" {
   type = string
 }
 
-variable "LinuxInstanceCount" {
-  type = number
-}
-
-variable "LinuxVmssSize" {
-  type = string
-}
-
 variable "Region" {
   type = string
 }
@@ -55,12 +63,16 @@ variable "VnetAddressSpace" {
   type = list(string)
 }
 
-variable "WebSubnetPrefix" {
-  type = list(string)
+variable "WebImageId" {
+  type = string
 }
 
 variable "WebInstanceCount" {
   type = number
+}
+
+variable "WebSubnetPrefix" {
+  type = list(string)
 }
 
 variable "WebVmssSize" {

@@ -1,0 +1,136 @@
+---
+- name: Configure Application Server
+  hosts: all
+  become: yes
+  tasks:
+    #############################################################################
+    # Update all packages to the latest version
+    #############################################################################
+    - name: Update all packages to the latest version
+      apt:
+        upgrade: dist
+
+    #############################################################################
+    # Install .NET SDK
+    #############################################################################
+    - name: Install dependencies for .NET SDK
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - gnupg
+
+    - name: Add Microsoft package signing key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Add Microsoft package repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-ubuntu-focal-prod focal main"
+        state: present
+
+    - name: Install .NET SDK
+      apt:
+        name: dotnet-sdk-9.0
+        state: present
+        update_cache: yes
+
+    - name: Verify .NET SDK installation
+      command: dotnet --version
+      register: dotnet_version
+      failed_when: dotnet_version.rc != 0
+      changed_when: false
+
+    #############################################################################
+    # Create and configure ASP.NET Core application
+    #############################################################################
+    - name: Create directory for the application
+      file:
+        path: /opt/sls-app
+        state: directory
+
+    - name: Create a new ASP.NET Core application
+      command: dotnet new webapp -o /opt/sls-app
+      register: dotnet_new
+      failed_when: dotnet_new.rc != 0
+      changed_when: false
+
+    - name: Publish the ASP.NET Core application
+      command:
+        cmd: dotnet publish -c Release -o /opt/sls-app/publish
+        chdir: /opt/sls-app
+      register: dotnet_publish
+      failed_when: dotnet_publish.rc != 0
+      changed_when: false
+
+    #############################################################################
+    # Configure the application to run as a service
+    #############################################################################
+    - name: Create systemd service file for the application
+      copy:
+        dest: /etc/systemd/system/sls-app.service
+        content: |
+          [Unit]
+          Description=ASP.NET Core Application
+
+          [Service]
+          WorkingDirectory=/opt/sls-app/publish
+          ExecStart=/usr/bin/dotnet /opt/sls-app/publish/sls-app.dll
+          Restart=always
+          RestartSec=10
+          SyslogIdentifier=sls-app
+          User=www-data
+          Environment=ASPNETCORE_ENVIRONMENT=Production
+          Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd to apply the new service
+      command: systemctl daemon-reload
+
+    - name: Start and enable the application service
+      systemd:
+        name: sls-app
+        state: started
+        enabled: yes
+
+    #############################################################################
+    # Install and configure Azure CLI
+    #############################################################################
+    - name: Install dependencies for Azure CLI
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - ca-certificates
+        - curl
+        - apt-transport-https
+        - lsb-release
+        - gnupg
+
+    - name: Add Microsoft signing key
+      apt_key:
+        url: https://packages.microsoft.com/keys/microsoft.asc
+        state: present
+
+    - name: Add Azure CLI repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_facts['lsb']['codename'] }} main"
+        state: present
+
+    - name: Install Azure CLI
+      apt:
+        name: azure-cli
+        state: present
+        update_cache: yes
+
+    #############################################################################
+    # Disable UFW firewall
+    #############################################################################
+    - name: Disable UFW firewall
+      ufw:
+        state: disabled
