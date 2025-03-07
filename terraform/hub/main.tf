@@ -147,7 +147,7 @@ resource "azurerm_bastion_host" "bastion" {
   ip_configuration {
     name                 = "hub-bastion-${var.Region}-ipconfig"
     subnet_id            = azurerm_subnet.bastion.id
-    public_ip_address_id = azurerm_public_ip.bastion.id
+    public_ip_address_id = azurerm_public_ip.bastion[0].id
   }
 }
 
@@ -172,11 +172,11 @@ resource "azurerm_route_table" "fw_route_table" {
     name                   = "default-route"
     address_prefix         = "0.0.0.0/0"
     next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = azurerm_firewall.hub_firewall.ip_configuration[0].private_ip_address
+    next_hop_in_ip_address = azurerm_firewall.firewall.ip_configuration[0].private_ip_address
   }
   route {
     name           = "local-route"
-    address_prefix = azurerm_virtual_network.vnet.address_space[0]
+    address_prefix = azurerm_virtual_network.vnet.address_space
     next_hop_type  = "VnetLocal"
   }
 }
@@ -214,7 +214,7 @@ resource "azurerm_firewall" "firewall" {
   sku_name = "AZFW_VNet"
   sku_tier = var.AzFwTier
 
-  firewall_policy_id = azurerm_firewall_policy.firewall_policy.id
+  firewall_policy_id = azurerm_firewall_policy.firewall_policy[0].id
 
   ip_configuration {
     name      = "hub-firewall-${var.Region}-ip-config"
@@ -224,7 +224,7 @@ resource "azurerm_firewall" "firewall" {
   management_ip_configuration {
     name                 = "hub-firewall-${var.Region}-mgmt-config"
     subnet_id            = azurerm_subnet.az_mgmt_firewall.id
-    public_ip_address_id = azurerm_public_ip.public_ip_firewall.id
+    public_ip_address_id = azurerm_public_ip.firewall_pip.id
   }
 
 }
@@ -248,7 +248,7 @@ resource "azurerm_firewall_policy" "firewall_policy" {
 resource "azurerm_firewall_policy_rule_collection_group" "collection_group_policy" {
   count              = var.FwEnabled ? 1 : 0
   name               = "DefaultNetworkRuleCollectionGroup"
-  firewall_policy_id = azurerm_firewall_policy.firewall_policy.id
+  firewall_policy_id = azurerm_firewall_policy.firewall_policy[0].id
   priority           = 200
 
   network_rule_collection {
