@@ -172,7 +172,7 @@ resource "azurerm_route_table" "fw_route_table" {
     name                   = "default-route"
     address_prefix         = "0.0.0.0/0"
     next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = azurerm_firewall.firewall.ip_configuration[0].private_ip_address
+    next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
   }
   route {
     name           = "local-route"
@@ -282,7 +282,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "collection_group_polic
 resource "azurerm_monitor_diagnostic_setting" "firewall_monitoring" {
   count                          = var.FwEnabled ? 1 : 0
   name                           = "ActivityLog-to-hub-law-${var.Region}"
-  target_resource_id             = azurerm_firewall.firewall.id
+  target_resource_id             = azurerm_firewall.firewall[0].id
   log_analytics_workspace_id     = azurerm_log_analytics_workspace.law.id
   log_analytics_destination_type = "Dedicated"
 
