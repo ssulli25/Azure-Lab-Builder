@@ -224,7 +224,7 @@ resource "azurerm_firewall" "firewall" {
   management_ip_configuration {
     name                 = "hub-firewall-${var.Region}-mgmt-config"
     subnet_id            = azurerm_subnet.az_mgmt_firewall.id
-    public_ip_address_id = azurerm_public_ip.firewall_pip.id
+    public_ip_address_id = azurerm_public_ip.firewall_pip[0].id
   }
 
 }
