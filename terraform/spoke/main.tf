@@ -2,11 +2,32 @@
 # Data #
 #======#
 
+### Hub Virtual Network ###
 data "azurerm_virtual_network" "hub" {
   count               = var.HubEnabled ? 1 : 0
   provider            = azurerm.hub
-  name                = var.HubVnet
-  resource_group_name = var.HubNetworkRg
+  name                = "hub-vnet-${var.Region}"
+  resource_group_name = "hub-network-${var.Region}-rg"
+}
+
+### Hub Log Analytics Workspace ###
+data "azurerm_log_analytics_workspace" "hub" {
+  count               = var.HubEnabled ? 1 : 0
+  provider            = azurerm.hub
+  name                = "hub-law-${var.Region}"
+  resource_group_name = "hub-monitor-${var.Region}-rg"
+}
+
+### Hub Azure Firewall ###
+data "azurerm_firewall" "hub" {
+  count               = var.HubEnabled ? 1 : 0
+  provider            = azurerm.hub
+  name                = "hub-firewall-${var.Region}"
+  resource_group_name = "hub-network-${var.Region}-rg"
+}
+
+### Spoke Subscription ###
+data "azurerm_subscription" "current" {
 }
 
 #========#
@@ -30,12 +51,45 @@ locals {
   web_vmss_source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.WebImageId}"
   app_vmss_source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.AppImageId}"
   data_vm_source_image_id  = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.DataImageId}"
+  ### Subnet IDs ###
+  subnet_ids = { for subnet in azurerm_virtual_network.vnet.subnet : subnet.name => subnet.id }
 
 }
 
-#===========#
-# Resources #
-#===========#
+#===============#
+# Subscriptions #
+#===============#
+
+resource "azurerm_monitor_diagnostic_setting" "sub_diagnostic_settings" {
+  name                       = "ActivityLog-to-hub-law-${var.Region}"
+  target_resource_id         = data.azurerm_subscription.current.id
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.hub.id
+
+  enabled_log {
+    category = "Administrative"
+  }
+  enabled_log {
+    category = "Security"
+  }
+  enabled_log {
+    category = "Alert"
+  }
+  enabled_log {
+    category = "Policy"
+  }
+  enabled_log {
+    category = "ResourceHealth"
+  }
+  enabled_log {
+    category = "Autoscale"
+  }
+  enabled_log {
+    category = "Recommendation"
+  }
+  enabled_log {
+    category = "ServiceHealth"
+  }
+}
 
 #================#
 # Resource Group #
@@ -65,9 +119,7 @@ resource "azurerm_resource_group" "network_rg" {
 # Networking #
 #============#
 
-#=================#
-# Virtual Network #
-#=================#
+### Virtual Network and Subnets ###
 
 resource "azurerm_virtual_network" "vnet" {
   name                = "spoke-${var.EnvName}-vnet"
@@ -75,10 +127,6 @@ resource "azurerm_virtual_network" "vnet" {
   location            = azurerm_resource_group.network_rg.location
   address_space       = var.VnetAddressSpace
 }
-
-#=========#
-# Subnets #
-#=========#
 
 resource "azurerm_subnet" "web_subnet" {
   name                 = "web-subnet"
@@ -122,15 +170,13 @@ resource "azurerm_subnet" "data_lb_subnet" {
   address_prefixes     = var.DataLbSubnetPrefix
 }
 
-#==========#
-# Peerings #
-#==========#
+### Peerings ###
 
 resource "azurerm_virtual_network_peering" "hub_to_spoke" {
   count                        = var.HubEnabled ? 1 : 0
   provider                     = azurerm.hub
   name                         = "hub-to-spoke-${var.EnvName}"
-  resource_group_name          = var.HubNetworkRg
+  resource_group_name          = "hub-network-${var.Region}-rg"
   virtual_network_name         = data.azurerm_virtual_network.hub[0].name
   remote_virtual_network_id    = azurerm_virtual_network.vnet.id
   allow_virtual_network_access = true
@@ -145,9 +191,7 @@ resource "azurerm_virtual_network_peering" "spoke_to_hub" {
   allow_virtual_network_access = true
 }
 
-#=====================#
-# Application Gateway #
-#=====================#
+### Web Application Gateway ###
 
 resource "azurerm_application_gateway" "web" {
   name                = "web-${var.EnvName}-appgw"
@@ -205,9 +249,7 @@ resource "azurerm_application_gateway" "web" {
   }
 }
 
-#===================#
-# Public IP Address #
-#===================#
+### Web App Gateway Public IP Address ###
 
 resource "azurerm_public_ip" "web_appgw" {
   name                = "web-${var.EnvName}-appgw-pip"
@@ -217,9 +259,7 @@ resource "azurerm_public_ip" "web_appgw" {
   sku                 = "Standard"
 }
 
-#===================#
-# App Load Balancer #
-#===================#
+### App Load Balancer ###
 
 # Application Tier Internal Load Balancer
 resource "azurerm_lb" "app_lb" {
@@ -258,9 +298,7 @@ resource "azurerm_lb_rule" "app_rule" {
   probe_id                       = azurerm_lb_probe.app_probe.id
 }
 
-#====================#
-# Data Load Balancer #
-#====================#
+### Data Load Balancer ###
 
 # Database Tier Internal Load Balancer
 resource "azurerm_lb" "data_lb" {
@@ -299,9 +337,7 @@ resource "azurerm_lb_rule" "data_rule" {
   probe_id                       = azurerm_lb_probe.data_probe.id
 }
 
-#==================#
-# Network Security #
-#==================#
+### Network Security Groups ###
 
 resource "azurerm_network_security_group" "web_nsg" {
   name                = "web-${var.EnvName}-nsg"
@@ -469,14 +505,38 @@ resource "azurerm_subnet_network_security_group_association" "data_nsg_associati
   network_security_group_id = azurerm_network_security_group.data_nsg.id
 }
 
+### Route Tables Spoke ###
+
+resource "azurerm_route_table" "fw_route_table" {
+  count               = var.FwEnabled ? 1 : 0
+  name                = "spoke-route-table-firewall"
+  resource_group_name = azurerm_resource_group.network_rg.name
+  location            = azurerm_resource_group.network_rg.location
+
+  route {
+    name                   = "default-route"
+    address_prefix         = "0.0.0.0/0"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = data.azurerm_firewall.hub.ip_configuration[0].private_ip_address
+  }
+  route {
+    name           = "local-route"
+    address_prefix = azurerm_virtual_network.vnet.address_space[0]
+    next_hop_type  = "VnetLocal"
+  }
+}
+
+resource "azurerm_subnet_route_table_association" "fw_route_table_association" {
+  for_each       = local.subnet_ids
+  subnet_id      = each.value
+  route_table_id = azurerm_route_table.fw_route_table.id
+}
 
 #=========#
 # Compute #
 #=========#
 
-#======================#
-# Web Virtual Machines #
-#======================#
+### Web Virtual Machine Scale Set ###
 
 resource "azurerm_linux_virtual_machine_scale_set" "web_vmss" {
   name                            = "web-${var.EnvName}-vmss"
@@ -508,9 +568,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "web_vmss" {
   source_image_id = local.web_vmss_source_image_id
 }
 
-#==============================#
-# Application Virtual Machines #
-#==============================#
+### Application Virtual Machine Scale Set ###
 
 resource "azurerm_linux_virtual_machine_scale_set" "app_vmss" {
   name                            = "app-${var.EnvName}-vmss"
@@ -542,9 +600,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "app_vmss" {
   source_image_id = local.app_vmss_source_image_id
 }
 
-#==============================#
-# Database Virtual Machines    #
-#==============================#
+### Database Virtual Machines ###
 
 resource "azurerm_linux_virtual_machine" "db_vm_primary" {
   name                            = "db-${var.EnvName}-vm-primary"
@@ -618,9 +674,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "secondary
   backend_address_pool_id = azurerm_lb_backend_address_pool.data_backend_pool.id
 }
 
-#==============================#
-# Database Data Disks          #
-#==============================#
+### Database Data Disks ###
 
 resource "azurerm_managed_disk" "primary_data_disk" {
   name                 = "db-${var.EnvName}-vm-primary-data-disk"

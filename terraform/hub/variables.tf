@@ -1,45 +1,41 @@
-variable "VnetAddressSpace" {
+variable "AzFirewallMgmtSubnetPrefix" {
   type = list(string)
 }
 
-variable "BastionName" {
+variable "AzFwTier" {
   type = string
+}
+
+variable "AzFirewallSubnetPrefix" {
+  type = list(string)
+}
+
+variable "BastionEnabled" {
+  type = bool
 }
 
 variable "BastionSubnetPrefix" {
   type = list(string)
 }
 
+variable "FwEnabled" {
+  type = bool
+}
+
 variable "GatewaySubnetPrefix" {
   type = list(string)
-}
-
-variable "LogAnalyticsName" {
-  type = string
-}
-
-variable "NetworkRgName" {
-  type = string
 }
 
 variable "MgmtSubnetPrefix" {
   type = list(string)
 }
 
-variable "MonitorRgName" {
-  type = string
-}
-
 variable "Region" {
   type = string
 }
 
-variable "VnetName" {
-  type = string
-}
-
-variable "VngName" {
-  type = string
+variable "VnetAddressSpace" {
+  type = list(string)
 }
 
 variable "VngSku" {
