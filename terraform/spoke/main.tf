@@ -529,7 +529,7 @@ resource "azurerm_route_table" "fw_route_table" {
 resource "azurerm_subnet_route_table_association" "fw_route_table_association" {
   for_each       = local.subnet_ids
   subnet_id      = each.value
-  route_table_id = azurerm_route_table.fw_route_table.id
+  route_table_id = azurerm_route_table.fw_route_table[0].id
 }
 
 #=========#
