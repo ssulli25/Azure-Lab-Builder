@@ -63,7 +63,7 @@ locals {
 resource "azurerm_monitor_diagnostic_setting" "sub_diagnostic_settings" {
   name                       = "ActivityLog-to-hub-law-${var.Region}"
   target_resource_id         = data.azurerm_subscription.current.id
-  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.hub.id
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.hub[0].id
 
   enabled_log {
     category = "Administrative"
@@ -517,11 +517,11 @@ resource "azurerm_route_table" "fw_route_table" {
     name                   = "default-route"
     address_prefix         = "0.0.0.0/0"
     next_hop_type          = "VirtualAppliance"
-    next_hop_in_ip_address = data.azurerm_firewall.hub.ip_configuration[0].private_ip_address
+    next_hop_in_ip_address = data.azurerm_firewall.hub[0].ip_configuration[0].private_ip_address
   }
   route {
     name           = "local-route"
-    address_prefix = azurerm_virtual_network.vnet.address_space[0]
+    address_prefix = azurerm_virtual_network.vnet.address_space
     next_hop_type  = "VnetLocal"
   }
 }
