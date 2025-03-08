@@ -194,7 +194,7 @@ resource "azurerm_subnet_route_table_association" "mgmt_route_table_association"
 
 resource "azurerm_subnet_route_table_association" "gateway_route_table_association" {
   subnet_id      = azurerm_subnet.gateway.id
-  route_table_id = azurerm_route_table.fw_route_table[0].id
+  route_table_id = azurerm_route_table.gateway_route_table[0].id
 }
 
 #============#
