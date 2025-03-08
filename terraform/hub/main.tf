@@ -185,7 +185,14 @@ resource "azurerm_subnet_route_table_association" "fw_route_table_association" {
   for_each       = local.subnet_ids
   subnet_id      = each.value
   route_table_id = azurerm_route_table.fw_route_table[0].id
-  depends_on     = [azurerm_virtual_network.vnet, azurerm_subnet.mgmt, azurerm_subnet.gateway, azurerm_subnet.bastion, azurerm_subnet.az_firewall, azurerm_subnet.az_mgmt_firewall]
+  depends_on = [
+    azurerm_virtual_network.vnet,
+    azurerm_subnet.mgmt,
+    azurerm_subnet.gateway,
+    azurerm_subnet.bastion,
+    azurerm_subnet.az_firewall,
+    azurerm_subnet.az_mgmt_firewall
+  ]
 }
 
 #============#
