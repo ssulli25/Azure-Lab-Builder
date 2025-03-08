@@ -173,6 +173,20 @@ resource "azurerm_route_table" "fw_route_table" {
   }
 }
 
+resource "azurerm_route_table" "gateway_route_table" {
+  count               = var.FwEnabled ? 1 : 0
+  name                = "hub-route-table-gateway"
+  resource_group_name = azurerm_resource_group.network_rg.name
+  location            = azurerm_resource_group.network_rg.location
+
+  route {
+    name                   = "gateway-route"
+    address_prefix         = tolist(azurerm_virtual_network.vnet.address_space)[0]
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
+  }
+}
+
 resource "azurerm_subnet_route_table_association" "mgmt_route_table_association" {
   subnet_id      = azurerm_subnet.mgmt.id
   route_table_id = azurerm_route_table.fw_route_table[0].id
@@ -180,21 +194,6 @@ resource "azurerm_subnet_route_table_association" "mgmt_route_table_association"
 
 resource "azurerm_subnet_route_table_association" "gateway_route_table_association" {
   subnet_id      = azurerm_subnet.gateway.id
-  route_table_id = azurerm_route_table.fw_route_table[0].id
-}
-
-resource "azurerm_subnet_route_table_association" "bastion_route_table_association" {
-  subnet_id      = azurerm_subnet.bastion.id
-  route_table_id = azurerm_route_table.fw_route_table[0].id
-}
-
-resource "azurerm_subnet_route_table_association" "firewall_route_table_association" {
-  subnet_id      = azurerm_subnet.az_firewall.id
-  route_table_id = azurerm_route_table.fw_route_table[0].id
-}
-
-resource "azurerm_subnet_route_table_association" "firewall_mgmt_route_table_association" {
-  subnet_id      = azurerm_subnet.az_mgmt_firewall.id
   route_table_id = azurerm_route_table.fw_route_table[0].id
 }
 
