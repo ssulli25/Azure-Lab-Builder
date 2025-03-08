@@ -521,7 +521,7 @@ resource "azurerm_route_table" "fw_route_table" {
   }
   route {
     name           = "local-route"
-    address_prefix = azurerm_virtual_network.vnet.address_space
+    address_prefix = tolist(azurerm_virtual_network.vnet.address_space)[0]
     next_hop_type  = "VnetLocal"
   }
 }

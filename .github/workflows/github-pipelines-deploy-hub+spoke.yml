@@ -96,7 +96,6 @@ jobs:
             }
           }
           EOL
-
           terraform init
           if [ ${{ github.event.inputs.terraform_action }} = "apply" ]; then
               terraform plan \
