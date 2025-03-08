@@ -6,12 +6,12 @@
 data "azurerm_subscription" "current" {
 }
 
-#========#
-# Locals #
-#========#
-
-locals {
-  subnet_ids = { for subnet in azurerm_virtual_network.vnet.subnet : subnet.name => subnet.id }
+### Subnet list for route table association ###
+data "azurerm_subnet" "subnets" {
+  for_each = toset(azurerm_virtual_network.vnet.subnet)
+  name                 = each.key
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  resource_group_name  = azurerm_resource_group.network_rg.name
 }
 
 #===============#
@@ -182,7 +182,7 @@ resource "azurerm_route_table" "fw_route_table" {
 }
 
 resource "azurerm_subnet_route_table_association" "fw_route_table_association" {
-  for_each       = local.subnet_ids
+  for_each       = data.azurerm_subnet.subnets
   subnet_id      = each.value
   route_table_id = azurerm_route_table.fw_route_table[0].id
 }
