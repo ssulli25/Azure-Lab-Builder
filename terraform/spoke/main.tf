@@ -51,9 +51,6 @@ locals {
   web_vmss_source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.WebImageId}"
   app_vmss_source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.AppImageId}"
   data_vm_source_image_id  = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.DataImageId}"
-  ### Subnet IDs ###
-  subnet_ids = { for subnet in azurerm_virtual_network.vnet.subnet : subnet.name => subnet.id }
-
 }
 
 #===============#
@@ -526,19 +523,34 @@ resource "azurerm_route_table" "fw_route_table" {
   }
 }
 
-resource "azurerm_subnet_route_table_association" "fw_route_table_association" {
-  for_each       = local.subnet_ids
-  subnet_id      = each.value
+resource "azurerm_subnet_route_table_association" "web_route_table_association" {
+  subnet_id      = azurerm_subnet.web_subnet.id
   route_table_id = azurerm_route_table.fw_route_table[0].id
-  depends_on = [
-    azurerm_virtual_network.vnet,
-    azurerm_subnet.web_subnet,
-    azurerm_subnet.appgw_subnet,
-    azurerm_subnet.app_lb_subnet,
-    azurerm_subnet.app_subnet,
-    azurerm_subnet.data_subnet,
-    azurerm_subnet.data_lb_subnet
-  ]
+}
+
+resource "azurerm_subnet_route_table_association" "appgw_route_table_association" {
+  subnet_id      = azurerm_subnet.appgw_subnet.id
+  route_table_id = azurerm_route_table.fw_route_table[0].id
+}
+
+resource "azurerm_subnet_route_table_association" "app_route_table_association" {
+  subnet_id      = azurerm_subnet.app_subnet.id
+  route_table_id = azurerm_route_table.fw_route_table[0].id
+}
+
+resource "azurerm_subnet_route_table_association" "applb_route_table_association" {
+  subnet_id      = azurerm_subnet.app_lb_subnet.id
+  route_table_id = azurerm_route_table.fw_route_table[0].id
+}
+
+resource "azurerm_subnet_route_table_association" "data_route_table_association" {
+  subnet_id      = azurerm_subnet.data_subnet.id
+  route_table_id = azurerm_route_table.fw_route_table[0].id
+}
+
+resource "azurerm_subnet_route_table_association" "datalb_route_table_association" {
+  subnet_id      = azurerm_subnet.data_lb_subnet.id
+  route_table_id = azurerm_route_table.fw_route_table[0].id
 }
 
 #=========#

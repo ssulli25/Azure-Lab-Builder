@@ -6,14 +6,6 @@
 data "azurerm_subscription" "current" {
 }
 
-#========#
-# Locals #
-#========#
-
-locals {
-  subnet_ids = { for subnet in azurerm_virtual_network.vnet.subnet : subnet.name => subnet.id }
-}
-
 #===============#
 # Subscriptions #
 #===============#
@@ -181,18 +173,29 @@ resource "azurerm_route_table" "fw_route_table" {
   }
 }
 
-resource "azurerm_subnet_route_table_association" "fw_route_table_association" {
-  for_each       = local.subnet_ids
-  subnet_id      = each.value
+resource "azurerm_subnet_route_table_association" "mgmt_route_table_association" {
+  subnet_id      = azurerm_subnet.mgmt.id
   route_table_id = azurerm_route_table.fw_route_table[0].id
-  depends_on = [
-    azurerm_virtual_network.vnet,
-    azurerm_subnet.mgmt,
-    azurerm_subnet.gateway,
-    azurerm_subnet.bastion,
-    azurerm_subnet.az_firewall,
-    azurerm_subnet.az_mgmt_firewall
-  ]
+}
+
+resource "azurerm_subnet_route_table_association" "gateway_route_table_association" {
+  subnet_id      = azurerm_subnet.gateway.id
+  route_table_id = azurerm_route_table.fw_route_table[0].id
+}
+
+resource "azurerm_subnet_route_table_association" "bastion_route_table_association" {
+  subnet_id      = azurerm_subnet.bastion.id
+  route_table_id = azurerm_route_table.fw_route_table[0].id
+}
+
+resource "azurerm_subnet_route_table_association" "firewall_route_table_association" {
+  subnet_id      = azurerm_subnet.az_firewall.id
+  route_table_id = azurerm_route_table.fw_route_table[0].id
+}
+
+resource "azurerm_subnet_route_table_association" "firewall_mgmt_route_table_association" {
+  subnet_id      = azurerm_subnet.az_mgmt_firewall.id
+  route_table_id = azurerm_route_table.fw_route_table[0].id
 }
 
 #============#
