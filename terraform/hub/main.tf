@@ -6,12 +6,12 @@
 data "azurerm_subscription" "current" {
 }
 
-### Subnet list for route table association ###
-data "azurerm_subnet" "subnets" {
-  for_each = toset(azurerm_virtual_network.vnet.subnet)
-  name                 = each.key
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  resource_group_name  = azurerm_resource_group.network_rg.name
+#========#
+# Locals #
+#========#
+
+locals {
+  subnet_ids = { for subnet in azurerm_virtual_network.vnet.subnet : subnet.name => subnet.id }
 }
 
 #===============#
@@ -182,9 +182,10 @@ resource "azurerm_route_table" "fw_route_table" {
 }
 
 resource "azurerm_subnet_route_table_association" "fw_route_table_association" {
-  for_each       = data.azurerm_subnet.subnets
+  for_each       = local.subnet_ids
   subnet_id      = each.value
   route_table_id = azurerm_route_table.fw_route_table[0].id
+  depends_on     = [azurerm_virtual_network.vnet, azurerm_subnet.mgmt, azurerm_subnet.gateway, azurerm_subnet.bastion, azurerm_subnet.az_firewall, azurerm_subnet.az_mgmt_firewall]
 }
 
 #============#
