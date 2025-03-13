@@ -12,7 +12,7 @@ data "azurerm_virtual_network" "hub" {
 
 ### Hub Azure Firewall ###
 data "azurerm_firewall" "hub" {
-  count               = var.HubEnabled ? 1 : 0
+  count               = (var.HubEnabled && var.FwEnabled) ? 1 : 0
   provider            = azurerm.hub
   name                = "hub-${var.Region}-firewall"
   resource_group_name = "hub-network-${var.Region}-rg"
