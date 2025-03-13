@@ -6,7 +6,7 @@
 data "azurerm_virtual_network" "hub" {
   count               = var.HubEnabled ? 1 : 0
   provider            = azurerm.hub
-  name                = "hub-vnet-${var.Region}"
+  name                = "hub-${var.Region}-vnet"
   resource_group_name = "hub-network-${var.Region}-rg"
 }
 
