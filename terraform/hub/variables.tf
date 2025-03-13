@@ -38,6 +38,10 @@ variable "VnetAddressSpace" {
   type = list(string)
 }
 
+variable "VngEnabled" {
+  type = bool
+}
+
 variable "VngSku" {
   type = string
 }

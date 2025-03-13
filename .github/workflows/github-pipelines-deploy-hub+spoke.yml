@@ -19,6 +19,10 @@ on:
         description: 'Would you like to run a Terraform apply or destroy command (case sensitive)?'
         required: true
         default: 'apply'
+      vng_enabled:
+        description: 'Is a Virtual Network Gateway needed?'
+        required: true
+        default: 'true'
       bastion_enabled:
         description: 'Is Azure Bastion needed?'
         required: true
@@ -102,11 +106,13 @@ jobs:
                 -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
                 -var="FwEnabled=${{ github.event.inputs.firewall_enabled }}" \
                 -var="BastionEnabled=${{ github.event.inputs.bastion_enabled }}"
+                -var="VngEnabled=${{ github.event.inputs.vng_enabled }}"
           elif [ ${{ github.event.inputs.terraform_action }} = "destroy" ]; then
               terraform plan -destroy \
                 -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
                 -var="FwEnabled=${{ github.event.inputs.firewall_enabled }}" \
                 -var="BastionEnabled=${{ github.event.inputs.bastion_enabled }}"
+                -var="VngEnabled=${{ github.event.inputs.vng_enabled }}"
           else
               echo "Please input either an apply or destroy command (case sensitive)."
               exit 1
@@ -179,6 +185,7 @@ jobs:
             -var="HubSubscriptionId=${{ secrets.HUB_SUBSCRIPTION_ID }}" \
             -var="FwEnabled=${{ github.event.inputs.firewall_enabled }}" \
             -var="BastionEnabled=${{ github.event.inputs.bastion_enabled }}"
+            -var="VngEnabled=${{ github.event.inputs.vng_enabled }}"
         env:
           ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
           ARM_BACKEND_RESOURCE_GROUP_NAME: ${{ secrets.ARM_BACKEND_RESOURCE_GROUP_NAME }} 

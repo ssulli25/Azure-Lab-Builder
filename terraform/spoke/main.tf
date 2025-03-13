@@ -10,19 +10,11 @@ data "azurerm_virtual_network" "hub" {
   resource_group_name = "hub-network-${var.Region}-rg"
 }
 
-### Hub Log Analytics Workspace ###
-data "azurerm_log_analytics_workspace" "hub" {
-  count               = var.HubEnabled ? 1 : 0
-  provider            = azurerm.hub
-  name                = "hub-law-${var.Region}"
-  resource_group_name = "hub-monitor-${var.Region}-rg"
-}
-
 ### Hub Azure Firewall ###
 data "azurerm_firewall" "hub" {
   count               = var.HubEnabled ? 1 : 0
   provider            = azurerm.hub
-  name                = "hub-firewall-${var.Region}"
+  name                = "hub-${var.Region}-firewall"
   resource_group_name = "hub-network-${var.Region}-rg"
 }
 
@@ -58,9 +50,9 @@ locals {
 #===============#
 
 resource "azurerm_monitor_diagnostic_setting" "sub_diagnostic_settings" {
-  name                       = "ActivityLog-to-hub-law-${var.Region}"
+  name                       = "ActivityLog-to-${var.EnvName}-${var.Region}-law"
   target_resource_id         = data.azurerm_subscription.current.id
-  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.hub[0].id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 
   enabled_log {
     category = "Administrative"
@@ -110,6 +102,23 @@ resource "azurerm_resource_group" "db_rg" {
 resource "azurerm_resource_group" "network_rg" {
   name     = "network-${var.EnvName}-rg"
   location = var.Region
+}
+
+resource "azurerm_resource_group" "monitor_rg" {
+  name     = "monitor-${var.EnvName}-rg"
+  location = var.Region
+}
+
+#============#
+# Monitoring #
+#============#
+
+resource "azurerm_log_analytics_workspace" "law" {
+  name                = "${var.EnvName}-${var.Region}-law"
+  resource_group_name = azurerm_resource_group.monitor_rg.name
+  location            = azurerm_resource_group.monitor_rg.location
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
 }
 
 #============#
@@ -505,8 +514,8 @@ resource "azurerm_subnet_network_security_group_association" "data_nsg_associati
 ### Route Tables Spoke ###
 
 resource "azurerm_route_table" "fw_route_table" {
-  count               = var.FwEnabled ? 1 : 0
-  name                = "spoke-route-table-firewall"
+  count               = (var.HubEnabled && var.FwEnabled) ? 1 : 0
+  name                = "spoke-firewall-route-table"
   resource_group_name = azurerm_resource_group.network_rg.name
   location            = azurerm_resource_group.network_rg.location
 
@@ -525,7 +534,7 @@ resource "azurerm_route_table" "fw_route_table" {
 
 resource "azurerm_route_table" "appgw_route_table" {
   count               = var.FwEnabled ? 1 : 0
-  name                = "spoke-route-table-appgw"
+  name                = "spoke-appgw-route-table"
   resource_group_name = azurerm_resource_group.network_rg.name
   location            = azurerm_resource_group.network_rg.location
 

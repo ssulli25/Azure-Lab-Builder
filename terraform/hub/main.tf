@@ -56,6 +56,18 @@ resource "azurerm_resource_group" "monitor_rg" {
 }
 
 #============#
+# Monitoring #
+#============#
+
+resource "azurerm_log_analytics_workspace" "law" {
+  name                = "hub-${var.Region}-law"
+  resource_group_name = azurerm_resource_group.monitor_rg.name
+  location            = azurerm_resource_group.monitor_rg.location
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+#============#
 # Networking #
 #============#
 
@@ -106,7 +118,8 @@ resource "azurerm_subnet" "az_mgmt_firewall" {
 ### Virtual Network Gateway ###
 
 resource "azurerm_virtual_network_gateway" "vng_gateway" {
-  name                = "hub-vng-${var.Region}"
+  count               = var.VngEnabled ? 1 : 0
+  name                = "hub-${var.Region}-vng"
   resource_group_name = azurerm_resource_group.network_rg.name
   location            = azurerm_resource_group.network_rg.location
   type                = var.VngType
@@ -114,14 +127,15 @@ resource "azurerm_virtual_network_gateway" "vng_gateway" {
   sku                 = var.VngSku
 
   ip_configuration {
-    name                 = "hub-vng-${var.Region}-ipconfig"
+    name                 = "hub-${var.Region}-vng-ipconfig"
     subnet_id            = azurerm_subnet.gateway.id
     public_ip_address_id = azurerm_public_ip.vng_pip.id
   }
 }
 
 resource "azurerm_public_ip" "vng_pip" {
-  name                = "hub-vng-${var.Region}-pip"
+  count               = var.VngEnabled ? 1 : 0
+  name                = "hub-${var.Region}-vng-pip"
   resource_group_name = azurerm_resource_group.network_rg.name
   location            = azurerm_resource_group.network_rg.location
   allocation_method   = "Static"
@@ -132,12 +146,12 @@ resource "azurerm_public_ip" "vng_pip" {
 
 resource "azurerm_bastion_host" "bastion" {
   count               = var.BastionEnabled ? 1 : 0
-  name                = "hub-bastion-${var.Region}"
+  name                = "hub-${var.Region}-bastion"
   resource_group_name = azurerm_resource_group.network_rg.name
   location            = azurerm_resource_group.network_rg.location
 
   ip_configuration {
-    name                 = "hub-bastion-${var.Region}-ipconfig"
+    name                 = "hub-${var.Region}-bastion-ipconfig"
     subnet_id            = azurerm_subnet.bastion.id
     public_ip_address_id = azurerm_public_ip.bastion[0].id
   }
@@ -145,7 +159,7 @@ resource "azurerm_bastion_host" "bastion" {
 
 resource "azurerm_public_ip" "bastion" {
   count               = var.BastionEnabled ? 1 : 0
-  name                = "hub-bastion-${var.Region}-pip"
+  name                = "hub-${var.Region}-bastion-pip"
   resource_group_name = azurerm_resource_group.network_rg.name
   location            = azurerm_resource_group.network_rg.location
   allocation_method   = "Static"
@@ -156,7 +170,7 @@ resource "azurerm_public_ip" "bastion" {
 
 resource "azurerm_route_table" "fw_route_table" {
   count               = var.FwEnabled ? 1 : 0
-  name                = "hub-route-table-firewall"
+  name                = "hub-firewall-route-table"
   resource_group_name = azurerm_resource_group.network_rg.name
   location            = azurerm_resource_group.network_rg.location
 
@@ -175,7 +189,7 @@ resource "azurerm_route_table" "fw_route_table" {
 
 resource "azurerm_route_table" "gateway_route_table" {
   count               = var.FwEnabled ? 1 : 0
-  name                = "hub-route-table-gateway"
+  name                = "hub-gateway-route-table"
   resource_group_name = azurerm_resource_group.network_rg.name
   location            = azurerm_resource_group.network_rg.location
 
@@ -197,18 +211,6 @@ resource "azurerm_subnet_route_table_association" "gateway_route_table_associati
   route_table_id = azurerm_route_table.gateway_route_table[0].id
 }
 
-#============#
-# Monitoring #
-#============#
-
-resource "azurerm_log_analytics_workspace" "law" {
-  name                = "hub-law-${var.Region}"
-  resource_group_name = azurerm_resource_group.monitor_rg.name
-  location            = azurerm_resource_group.monitor_rg.location
-  sku                 = "PerGB2018"
-  retention_in_days   = 30
-}
-
 #==========#
 # Security #
 #==========#
@@ -217,7 +219,7 @@ resource "azurerm_log_analytics_workspace" "law" {
 
 resource "azurerm_firewall" "firewall" {
   count               = var.FwEnabled ? 1 : 0
-  name                = "hub-firewall-${var.Region}"
+  name                = "hub-${var.Region}-firewall"
   resource_group_name = azurerm_resource_group.network_rg.name
   location            = azurerm_resource_group.network_rg.location
 
@@ -227,12 +229,12 @@ resource "azurerm_firewall" "firewall" {
   firewall_policy_id = azurerm_firewall_policy.firewall_policy[0].id
 
   ip_configuration {
-    name      = "hub-firewall-${var.Region}-ip-config"
+    name      = "hub-${var.Region}-firewall-ip-config"
     subnet_id = azurerm_subnet.az_firewall.id
   }
 
   management_ip_configuration {
-    name                 = "hub-firewall-${var.Region}-mgmt-config"
+    name                 = "hub-${var.Region}-firewall-mgmt-config"
     subnet_id            = azurerm_subnet.az_mgmt_firewall.id
     public_ip_address_id = azurerm_public_ip.firewall_pip[0].id
   }
@@ -241,7 +243,7 @@ resource "azurerm_firewall" "firewall" {
 
 resource "azurerm_public_ip" "firewall_pip" {
   count               = var.FwEnabled ? 1 : 0
-  name                = "hub-firewall-${var.Region}-pip"
+  name                = "hub-${var.Region}-firewall-pip"
   resource_group_name = azurerm_resource_group.network_rg.name
   location            = azurerm_resource_group.network_rg.location
   allocation_method   = "Static"
@@ -250,7 +252,7 @@ resource "azurerm_public_ip" "firewall_pip" {
 
 resource "azurerm_firewall_policy" "firewall_policy" {
   count               = var.FwEnabled ? 1 : 0
-  name                = "hub-firewall-${var.Region}-policy-primary"
+  name                = "hub-${var.Region}-firewall-policy-primary"
   resource_group_name = azurerm_resource_group.network_rg.name
   location            = azurerm_resource_group.network_rg.location
 }
@@ -291,7 +293,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "collection_group_polic
 
 resource "azurerm_monitor_diagnostic_setting" "firewall_monitoring" {
   count                          = var.FwEnabled ? 1 : 0
-  name                           = "ActivityLog-to-hub-law-${var.Region}"
+  name                           = "ActivityLog-to-hub-${var.Region}-law"
   target_resource_id             = azurerm_firewall.firewall[0].id
   log_analytics_workspace_id     = azurerm_log_analytics_workspace.law.id
   log_analytics_destination_type = "Dedicated"
