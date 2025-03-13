@@ -129,7 +129,7 @@ resource "azurerm_virtual_network_gateway" "vng_gateway" {
   ip_configuration {
     name                 = "hub-${var.Region}-vng-ipconfig"
     subnet_id            = azurerm_subnet.gateway.id
-    public_ip_address_id = azurerm_public_ip.vng_pip.id
+    public_ip_address_id = azurerm_public_ip.vng_pip[0].id
   }
 }
 
