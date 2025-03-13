@@ -202,11 +202,13 @@ resource "azurerm_route_table" "gateway_route_table" {
 }
 
 resource "azurerm_subnet_route_table_association" "mgmt_route_table_association" {
+  count          = var.FwEnabled ? 1 : 0
   subnet_id      = azurerm_subnet.mgmt.id
   route_table_id = azurerm_route_table.fw_route_table[0].id
 }
 
 resource "azurerm_subnet_route_table_association" "gateway_route_table_association" {
+  count          = var.FwEnabled ? 1 : 0
   subnet_id      = azurerm_subnet.gateway.id
   route_table_id = azurerm_route_table.gateway_route_table[0].id
 }
