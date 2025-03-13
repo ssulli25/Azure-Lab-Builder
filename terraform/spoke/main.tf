@@ -539,9 +539,9 @@ resource "azurerm_route_table" "appgw_route_table" {
   location            = azurerm_resource_group.network_rg.location
 
   route {
-    name                   = "default-route"
-    address_prefix         = "0.0.0.0/0"
-    next_hop_type          = "Internet"
+    name           = "default-route"
+    address_prefix = "0.0.0.0/0"
+    next_hop_type  = "Internet"
   }
   route {
     name           = "local-route"
@@ -551,31 +551,37 @@ resource "azurerm_route_table" "appgw_route_table" {
 }
 
 resource "azurerm_subnet_route_table_association" "web_route_table_association" {
+  count          = (var.HubEnabled && var.FwEnabled) ? 1 : 0
   subnet_id      = azurerm_subnet.web_subnet.id
   route_table_id = azurerm_route_table.fw_route_table[0].id
 }
 
 resource "azurerm_subnet_route_table_association" "appgw_route_table_association" {
+  count          = (var.HubEnabled && var.FwEnabled) ? 1 : 0
   subnet_id      = azurerm_subnet.appgw_subnet.id
   route_table_id = azurerm_route_table.appgw_route_table[0].id
 }
 
 resource "azurerm_subnet_route_table_association" "app_route_table_association" {
+  count          = (var.HubEnabled && var.FwEnabled) ? 1 : 0
   subnet_id      = azurerm_subnet.app_subnet.id
   route_table_id = azurerm_route_table.fw_route_table[0].id
 }
 
 resource "azurerm_subnet_route_table_association" "applb_route_table_association" {
+  count          = (var.HubEnabled && var.FwEnabled) ? 1 : 0
   subnet_id      = azurerm_subnet.app_lb_subnet.id
   route_table_id = azurerm_route_table.fw_route_table[0].id
 }
 
 resource "azurerm_subnet_route_table_association" "data_route_table_association" {
+  count          = (var.HubEnabled && var.FwEnabled) ? 1 : 0
   subnet_id      = azurerm_subnet.data_subnet.id
   route_table_id = azurerm_route_table.fw_route_table[0].id
 }
 
 resource "azurerm_subnet_route_table_association" "datalb_route_table_association" {
+  count          = (var.HubEnabled && var.FwEnabled) ? 1 : 0
   subnet_id      = azurerm_subnet.data_lb_subnet.id
   route_table_id = azurerm_route_table.fw_route_table[0].id
 }
