@@ -74,7 +74,7 @@ resource "azurerm_log_analytics_workspace" "law" {
 ### Virtual Network and Subnets ###
 
 resource "azurerm_virtual_network" "vnet" {
-  name                = "hub-vnet-${var.Region}"
+  name                = "hub-${var.Region}-vnet"
   resource_group_name = azurerm_resource_group.network_rg.name
   location            = azurerm_resource_group.network_rg.location
   address_space       = var.VnetAddressSpace
