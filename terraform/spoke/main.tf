@@ -289,7 +289,7 @@ resource "azurerm_lb_backend_address_pool" "app_backend_pool" {
 resource "azurerm_lb_probe" "app_probe" {
   loadbalancer_id = azurerm_lb.app_lb.id
   name            = local.health_probe_name
-  protocol        = "Tcp"
+  protocol        = "Http"
   port            = 80
 }
 
@@ -381,8 +381,20 @@ resource "azurerm_network_security_group" "web_nsg" {
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "65535"
+    destination_port_range     = "80"
     source_address_prefix      = "AzureLoadBalancer"
+    destination_address_prefix = var.WebSubnetPrefix[0]
+  }
+
+  security_rule {
+    name                       = "Allow-ICMP"
+    priority                   = 130
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
     destination_address_prefix = var.WebSubnetPrefix[0]
   }
 
@@ -435,8 +447,20 @@ resource "azurerm_network_security_group" "app_nsg" {
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "65535"
+    destination_port_range     = "80"
     source_address_prefix      = "AzureLoadBalancer"
+    destination_address_prefix = var.AppSubnetPrefix[0]
+  }
+
+  security_rule {
+    name                       = "Allow-ICMP"
+    priority                   = 130
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
     destination_address_prefix = var.AppSubnetPrefix[0]
   }
 
@@ -448,7 +472,7 @@ resource "azurerm_network_security_group" "app_nsg" {
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "*"
-    source_address_prefix      = var.WebSubnetPrefix[0]
+    source_address_prefix      = "*"
     destination_address_prefix = var.AppSubnetPrefix[0]
   }
 
@@ -478,8 +502,20 @@ resource "azurerm_network_security_group" "data_nsg" {
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
-    destination_port_range     = "65535"
+    destination_port_range     = "1433"
     source_address_prefix      = "AzureLoadBalancer"
+    destination_address_prefix = var.DataSubnetPrefix[0]
+  }
+
+  security_rule {
+    name                       = "Allow-ICMP"
+    priority                   = 130
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Icmp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
     destination_address_prefix = var.DataSubnetPrefix[0]
   }
 
@@ -491,7 +527,7 @@ resource "azurerm_network_security_group" "data_nsg" {
     protocol                   = "*"
     source_port_range          = "*"
     destination_port_range     = "*"
-    source_address_prefix      = var.AppSubnetPrefix[0]
+    source_address_prefix      = "*"
     destination_address_prefix = var.DataSubnetPrefix[0]
   }
 }
