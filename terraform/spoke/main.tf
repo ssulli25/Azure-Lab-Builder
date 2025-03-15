@@ -287,11 +287,11 @@ resource "azurerm_lb_backend_address_pool" "app_backend_pool" {
 }
 
 resource "azurerm_lb_probe" "app_probe" {
-  loadbalancer_id = azurerm_lb.app_lb.id
-  name            = local.health_probe_name
-  protocol        = "Http"
-  port            = 80
-  request_path    = "/"
+  loadbalancer_id     = azurerm_lb.app_lb.id
+  name                = local.health_probe_name
+  protocol            = "Http"
+  port                = 80
+  request_path        = "/"
   interval_in_seconds = 15
 }
 
