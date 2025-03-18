@@ -396,7 +396,7 @@ resource "azurerm_network_security_group" "web_nsg" {
     protocol                   = "Icmp"
     source_port_range          = "*"
     destination_port_range     = "*"
-    source_address_prefix      = "*"
+    source_address_prefix      = "VirtualNetwork"
     destination_address_prefix = var.WebSubnetPrefix[0]
   }
 
@@ -486,7 +486,7 @@ resource "azurerm_network_security_group" "app_nsg" {
     protocol                   = "Icmp"
     source_port_range          = "*"
     destination_port_range     = "*"
-    source_address_prefix      = "*"
+    source_address_prefix      = "VirtualNetwork"
     destination_address_prefix = var.AppSubnetPrefix[0]
   }
 
@@ -565,7 +565,7 @@ resource "azurerm_network_security_group" "data_nsg" {
     protocol                   = "Icmp"
     source_port_range          = "*"
     destination_port_range     = "*"
-    source_address_prefix      = "*"
+    source_address_prefix      = "VirtualNetwork"
     destination_address_prefix = var.DataSubnetPrefix[0]
   }
 
