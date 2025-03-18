@@ -22,7 +22,7 @@ on:
       vng_enabled:
         description: 'Is a Virtual Network Gateway needed?'
         required: true
-        default: 'true'
+        default: 'false'
       bastion_enabled:
         description: 'Is Azure Bastion needed?'
         required: true
