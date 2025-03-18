@@ -408,7 +408,7 @@ resource "azurerm_network_security_group" "web_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = azurerm_subnet.bastion.address_prefixes[0]
+    source_address_prefix      = "VirtualNetwork"
     destination_address_prefix = var.WebSubnetPrefix[0]
   }
 
@@ -420,7 +420,7 @@ resource "azurerm_network_security_group" "web_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "3389"
-    source_address_prefix      = azurerm_subnet.bastion.address_prefixes[0]
+    source_address_prefix      = "VirtualNetwork"
     destination_address_prefix = var.WebSubnetPrefix[0]
   }
 
@@ -498,7 +498,7 @@ resource "azurerm_network_security_group" "app_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = azurerm_subnet.bastion.address_prefixes[0]
+    source_address_prefix      = "VirtualNetwork"
     destination_address_prefix = var.AppSubnetPrefix[0]
   }
 
@@ -510,7 +510,7 @@ resource "azurerm_network_security_group" "app_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "3389"
-    source_address_prefix      = azurerm_subnet.bastion.address_prefixes[0]
+    source_address_prefix      = "VirtualNetwork"
     destination_address_prefix = var.AppSubnetPrefix[0]
   }
 
@@ -577,7 +577,7 @@ resource "azurerm_network_security_group" "data_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = azurerm_subnet.bastion.address_prefixes[0]
+    source_address_prefix      = "VirtualNetwork"
     destination_address_prefix = var.DataSubnetPrefix[0]
   }
 
@@ -589,7 +589,7 @@ resource "azurerm_network_security_group" "data_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "3389"
-    source_address_prefix      = azurerm_subnet.bastion.address_prefixes[0]
+    source_address_prefix      = "VirtualNetwork"
     destination_address_prefix = var.DataSubnetPrefix[0]
   }
 
