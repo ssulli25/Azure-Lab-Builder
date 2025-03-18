@@ -401,6 +401,30 @@ resource "azurerm_network_security_group" "web_nsg" {
   }
 
   security_rule {
+    name                       = "Allow-Bastion-SSH"
+    priority                   = 140
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "AzureBastionSubnet"
+    destination_address_prefix = var.WebSubnetPrefix[0]
+  }
+
+    security_rule {
+    name                       = "Allow-Bastion-RDP"
+    priority                   = 150
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3389"
+    source_address_prefix      = "AzureBastionSubnet"
+    destination_address_prefix = var.WebSubnetPrefix[0]
+  }
+
+  security_rule {
     name                       = "Deny-All-Inbound"
     priority                   = 200
     direction                  = "Inbound"
@@ -467,6 +491,30 @@ resource "azurerm_network_security_group" "app_nsg" {
   }
 
   security_rule {
+    name                       = "Allow-Bastion-SSH"
+    priority                   = 140
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "AzureBastionSubnet"
+    destination_address_prefix = var.AppSubnetPrefix[0]
+  }
+
+    security_rule {
+    name                       = "Allow-Bastion-RDP"
+    priority                   = 150
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3389"
+    source_address_prefix      = "AzureBastionSubnet"
+    destination_address_prefix = var.AppSubnetPrefix[0]
+  }
+
+  security_rule {
     name                       = "Deny-All-Inbound"
     priority                   = 200
     direction                  = "Inbound"
@@ -518,6 +566,30 @@ resource "azurerm_network_security_group" "data_nsg" {
     source_port_range          = "*"
     destination_port_range     = "*"
     source_address_prefix      = "*"
+    destination_address_prefix = var.DataSubnetPrefix[0]
+  }
+
+    security_rule {
+    name                       = "Allow-Bastion-SSH"
+    priority                   = 140
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "AzureBastionSubnet"
+    destination_address_prefix = var.DataSubnetPrefix[0]
+  }
+
+    security_rule {
+    name                       = "Allow-Bastion-RDP"
+    priority                   = 150
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3389"
+    source_address_prefix      = "AzureBastionSubnet"
     destination_address_prefix = var.DataSubnetPrefix[0]
   }
 
