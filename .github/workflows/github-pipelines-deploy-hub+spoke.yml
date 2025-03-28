@@ -19,12 +19,12 @@ on:
         description: 'Would you like to run a Terraform apply or destroy command (case sensitive)?'
         required: true
         default: 'apply'
-      vng_enabled:
-        description: 'Is a Virtual Network Gateway needed?'
-        required: true
-        default: 'false'
       bastion_enabled:
         description: 'Is Azure Bastion needed?'
+        required: true
+        default: 'true'
+      vng_enabled:
+        description: 'Is a Virtual Network Gateway needed?'
         required: true
         default: 'false'
       firewall_enabled:
