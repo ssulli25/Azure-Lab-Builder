@@ -298,19 +298,7 @@ resource "azurerm_monitor_diagnostic_setting" "firewall_monitoring" {
   name                           = "ActivityLog-to-hub-${var.Region}-law"
   target_resource_id             = azurerm_firewall.firewall[0].id
   log_analytics_workspace_id     = azurerm_log_analytics_workspace.law.id
-  log_analytics_destination_type = "Dedicated"
-
-  enabled_log {
-    category = "AzureFirewallApplicationRule"
-  }
-
-  enabled_log {
-    category = "AzureFirewallNetworkRule"
-  }
-
-  enabled_log {
-    category = "AzureFirewallDnsProxy"
-  }
+  log_analytics_destination_type = "AzureDiagnostics"
 
   enabled_log {
     category = "AZFWNetworkRule"
