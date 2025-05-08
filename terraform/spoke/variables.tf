@@ -42,17 +42,14 @@ variable "EnvName" {
   type = string
 }
 
-variable "HubEnabled" {
+variable "FwEnabled" {
   type    = bool
   default = false
 }
 
-variable "HubNetworkRg" {
-  type = string
-}
-
-variable "HubVnet" {
-  type = string
+variable "HubEnabled" {
+  type    = bool
+  default = false
 }
 
 variable "Region" {
