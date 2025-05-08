@@ -2,6 +2,10 @@
 # Data #
 #======#
 
+### Spoke Subscription ###
+data "azurerm_subscription" "current" {
+}
+
 ### Hub Virtual Network ###
 data "azurerm_virtual_network" "hub" {
   count               = var.HubEnabled ? 1 : 0
@@ -10,16 +14,21 @@ data "azurerm_virtual_network" "hub" {
   resource_group_name = "hub-network-${var.Region}-rg"
 }
 
+### Hub Management Subnet ###
+data "azurerm_subnet" "mgmt" {
+  count                = var.HubEnabled ? 1 : 0
+  provider             = azurerm.hub
+  name                 = "mgmt-subnet"
+  virtual_network_name = data.azurerm_virtual_network.hub[0].name
+  resource_group_name  = data.azurerm_virtual_network.hub[0].resource_group_name
+}
+
 ### Hub Azure Firewall ###
 data "azurerm_firewall" "hub" {
   count               = (var.HubEnabled && var.FwEnabled) ? 1 : 0
   provider            = azurerm.hub
   name                = "hub-${var.Region}-firewall"
   resource_group_name = "hub-network-${var.Region}-rg"
-}
-
-### Spoke Subscription ###
-data "azurerm_subscription" "current" {
 }
 
 #========#
@@ -352,6 +361,21 @@ resource "azurerm_network_security_group" "web_nsg" {
   resource_group_name = azurerm_resource_group.web_rg.name
   location            = azurerm_resource_group.web_rg.location
 
+  dynamic "security_rule" {
+    for_each = var.HubEnabled ? [1] : []
+    content {
+      name                       = "Allow-ICMP-Hub-Mgmt-Tier"
+      priority                   = 125
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Icmp"
+      source_port_range          = "*"
+      destination_port_range     = "*"
+      source_address_prefix      = data.azurerm_subnet.mgmt[0].address_prefix
+      destination_address_prefix = var.WebSubnetPrefix[0]
+    }
+  }
+
   security_rule {
     name                       = "Allow-HTTP"
     priority                   = 100
@@ -389,14 +413,14 @@ resource "azurerm_network_security_group" "web_nsg" {
   }
 
   security_rule {
-    name                       = "Allow-ICMP"
+    name                       = "Allow-ICMP-App-Tier"
     priority                   = 130
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Icmp"
     source_port_range          = "*"
     destination_port_range     = "*"
-    source_address_prefix      = "VirtualNetwork"
+    source_address_prefix      = var.AppSubnetPrefix[0]
     destination_address_prefix = var.WebSubnetPrefix[0]
   }
 
@@ -442,6 +466,21 @@ resource "azurerm_network_security_group" "app_nsg" {
   resource_group_name = azurerm_resource_group.app_rg.name
   location            = azurerm_resource_group.app_rg.location
 
+  dynamic "security_rule" {
+    for_each = var.HubEnabled ? [1] : []
+    content {
+      name                       = "Allow-ICMP-Hub-Mgmt-Tier"
+      priority                   = 125
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Icmp"
+      source_port_range          = "*"
+      destination_port_range     = "*"
+      source_address_prefix      = data.azurerm_subnet.mgmt[0].address_prefix
+      destination_address_prefix = var.AppSubnetPrefix[0]
+    }
+  }
+
   security_rule {
     name                       = "Allow-HTTP"
     priority                   = 100
@@ -479,14 +518,14 @@ resource "azurerm_network_security_group" "app_nsg" {
   }
 
   security_rule {
-    name                       = "Allow-ICMP"
+    name                       = "Allow-ICMP-Web-Data-Tiers"
     priority                   = 130
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Icmp"
     source_port_range          = "*"
     destination_port_range     = "*"
-    source_address_prefix      = "VirtualNetwork"
+    source_address_prefixes    = [var.WebSubnetPrefix[0], var.DataSubnetPrefix[0]]
     destination_address_prefix = var.AppSubnetPrefix[0]
   }
 
@@ -533,6 +572,21 @@ resource "azurerm_network_security_group" "data_nsg" {
   resource_group_name = azurerm_resource_group.db_rg.name
   location            = azurerm_resource_group.db_rg.location
 
+  dynamic "security_rule" {
+    for_each = var.HubEnabled ? [1] : []
+    content {
+      name                       = "Allow-ICMP-Hub-Mgmt-Tier"
+      priority                   = 125
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Icmp"
+      source_port_range          = "*"
+      destination_port_range     = "*"
+      source_address_prefix      = data.azurerm_subnet.mgmt[0].address_prefix
+      destination_address_prefix = var.DataSubnetPrefix[0]
+    }
+  }
+
   security_rule {
     name                       = "Allow-DB-Traffic"
     priority                   = 100
@@ -558,14 +612,14 @@ resource "azurerm_network_security_group" "data_nsg" {
   }
 
   security_rule {
-    name                       = "Allow-ICMP"
+    name                       = "Allow-ICMP-App-Tier"
     priority                   = 130
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Icmp"
     source_port_range          = "*"
     destination_port_range     = "*"
-    source_address_prefix      = "VirtualNetwork"
+    source_address_prefix      = var.AppSubnetPrefix[0]
     destination_address_prefix = var.DataSubnetPrefix[0]
   }
 
