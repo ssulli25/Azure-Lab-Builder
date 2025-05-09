@@ -7,7 +7,7 @@ on:
 
 env:
   majorVersion: '25'
-  minorVersion: '03'
+  minorVersion: '04'
 
 # Name of build pipeline
 name: build.sls.lab

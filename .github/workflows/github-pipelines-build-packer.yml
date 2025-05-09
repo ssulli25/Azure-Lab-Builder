@@ -7,13 +7,30 @@ on:
   # This event allows you to trigger the workflow manually from the GitHub Actions tab in your repository.
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'Please select a environment name: dev, test, or prod (case sensitive)?'
+      architecture:
+        description: 'Is a deployment of Packer needed for an image build?'
         required: true
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+        default: 'true'
+      environment:
+        description: 'Please select a spoke name: dev, test, or prod'
+        required: true
+        type: choice
+        options:
+          - 'dev'
+          - 'prod'
         default: 'dev'
       image-build:
-        description: 'Is the image build for web, app, or data (case sensitive)?'
+        description: 'Is the image build for web, app, or data?'
         required: true
+        type: choice
+        options:
+          - 'web'
+          - 'app'
+          - 'data'
         default: 'web'
 
 # Name of deploy pipeline
@@ -28,11 +45,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Make scripts executable
-        run: chmod +x ./scripts/verify-environment.sh ./scripts/verify-image-build.sh
-      - name: Verify Environment Name is dev, test, or prod
-        run: ./scripts/verify-environment.sh ${{ github.event.inputs.environment }}
-      - name: Verify Image build tier is web, app, or data
-        run: ./scripts/verify-image-build.sh ${{ github.event.inputs.image-build }}
+        run: chmod +x ./scripts/verify-architecture-selection.sh
+      - name: Verify Deployment of Packer Architecture
+        run: ./scripts/verify-architecture-selection.sh ${{ github.event.inputs.architecture }}
   Image_Build:
     name: Image Build - ${{ inputs.image-build }} tier in ${{ inputs.environment }} environment
     needs: Input_Verification
