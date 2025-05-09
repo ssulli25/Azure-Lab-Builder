@@ -73,7 +73,6 @@ jobs:
       - name: Verify Deployment of Hub & Spoke Architecture
         run: ./scripts/verify-architecture-selection.sh ${{ github.event.inputs.architecture }}
   Hub_Verification:
-    if: ${{ github.event.inputs.hub == 'true' }}
     name: Hub Pre-Verification
     needs: Input_Verification 
     runs-on: ubuntu-latest
@@ -153,7 +152,6 @@ jobs:
           MGMT_SUBNET_CIDR: ${{ secrets.MGMT_SUBNET_CIDR }} 
 
   Hub_Deployment:
-    if: ${{ github.event.inputs.hub == 'true' }}
     name: Hub Deployment
     needs: Hub_Verification
     runs-on: ubuntu-latest
@@ -222,7 +220,6 @@ jobs:
 
 ### Spoke with Hub
   App_Verification:
-    if: ${{ github.event.inputs.hub == 'true' }}
     name: Pre-Verification - ${{ inputs.environment }} environment
     needs: Hub_Deployment
     runs-on: ubuntu-latest
@@ -303,7 +300,6 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
   App_Deployment:
-    if: ${{ github.event.inputs.hub == 'true' }}
     name: Deployment - ${{ inputs.environment }} environment
     needs: App_Verification
     runs-on: ubuntu-latest

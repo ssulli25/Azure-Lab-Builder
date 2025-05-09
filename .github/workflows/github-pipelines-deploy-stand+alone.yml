@@ -50,7 +50,6 @@ jobs:
       - name: Verify Deployment of Stand-Alone Architecture
         run: ./scripts/verify-architecture-selection.sh ${{ github.event.inputs.architecture }}
   App_Verification:
-    if: ${{ github.event.inputs.spoke == 'true' }}
     name: Pre-Verification - ${{ inputs.environment }} environment
     needs: Input_Verification
     runs-on: ubuntu-latest
@@ -127,7 +126,6 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
 
   App_Deployment:
-    if: ${{ github.event.inputs.spoke == 'true' }}
     name: Deployment - ${{ inputs.environment }} environment
     needs: App_Verification
     runs-on: ubuntu-latest
