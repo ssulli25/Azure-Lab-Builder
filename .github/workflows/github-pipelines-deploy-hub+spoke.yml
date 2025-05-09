@@ -20,7 +20,6 @@ on:
         type: choice
         options:
           - 'dev'
-          - 'test'
           - 'prod'
         default: 'dev'
       terraform_action:
