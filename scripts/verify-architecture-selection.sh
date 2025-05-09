@@ -4,7 +4,7 @@
 
 if [ "$1" = "false" ]; then
     echo "Deployment is not needed. Exiting pipeline."
-    exit 0
+    exit 1
 else
     echo "Deployment is enabled. Proceeding with pipeline."
 fi
