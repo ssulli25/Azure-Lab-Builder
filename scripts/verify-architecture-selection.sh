@@ -2,7 +2,7 @@
 
 # Verify Deployment of Architecture
 
-if [ "${{ github.event.inputs.architecture }}" = "false" ]; then
+if [ "$1" = "false" ]; then
     echo "Deployment is not needed. Exiting pipeline."
     exit 0
 else
