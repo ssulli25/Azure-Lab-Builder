@@ -155,7 +155,6 @@ resource "azurerm_subnet" "web_subnet" {
   resource_group_name  = azurerm_resource_group.network_rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = var.WebSubnetPrefix
-  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "app_lb_subnet" {
@@ -170,7 +169,6 @@ resource "azurerm_subnet" "app_subnet" {
   resource_group_name  = azurerm_resource_group.network_rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = var.AppSubnetPrefix
-  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "data_lb_subnet" {
@@ -185,7 +183,6 @@ resource "azurerm_subnet" "data_subnet" {
   resource_group_name  = azurerm_resource_group.network_rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = var.DataSubnetPrefix
-  default_outbound_access_enabled = false
 }
 
 ### Peerings ###
@@ -699,34 +696,10 @@ resource "azurerm_route_table" "fw_route_table" {
   }
 }
 
-resource "azurerm_route_table" "appgw_route_table" {
-  count               = var.FwEnabled ? 1 : 0
-  name                = "spoke-appgw-route-table"
-  resource_group_name = azurerm_resource_group.network_rg.name
-  location            = azurerm_resource_group.network_rg.location
-
-  route {
-    name           = "default-route"
-    address_prefix = "0.0.0.0/0"
-    next_hop_type  = "Internet"
-  }
-  route {
-    name           = "local-route"
-    address_prefix = tolist(azurerm_virtual_network.vnet.address_space)[0]
-    next_hop_type  = "VnetLocal"
-  }
-}
-
 resource "azurerm_subnet_route_table_association" "web_route_table_association" {
   count          = (var.HubEnabled && var.FwEnabled) ? 1 : 0
   subnet_id      = azurerm_subnet.web_subnet.id
   route_table_id = azurerm_route_table.fw_route_table[0].id
-}
-
-resource "azurerm_subnet_route_table_association" "appgw_route_table_association" {
-  count          = (var.HubEnabled && var.FwEnabled) ? 1 : 0
-  subnet_id      = azurerm_subnet.appgw_subnet.id
-  route_table_id = azurerm_route_table.appgw_route_table[0].id
 }
 
 resource "azurerm_subnet_route_table_association" "app_route_table_association" {
@@ -735,21 +708,9 @@ resource "azurerm_subnet_route_table_association" "app_route_table_association" 
   route_table_id = azurerm_route_table.fw_route_table[0].id
 }
 
-resource "azurerm_subnet_route_table_association" "applb_route_table_association" {
-  count          = (var.HubEnabled && var.FwEnabled) ? 1 : 0
-  subnet_id      = azurerm_subnet.app_lb_subnet.id
-  route_table_id = azurerm_route_table.fw_route_table[0].id
-}
-
 resource "azurerm_subnet_route_table_association" "data_route_table_association" {
   count          = (var.HubEnabled && var.FwEnabled) ? 1 : 0
   subnet_id      = azurerm_subnet.data_subnet.id
-  route_table_id = azurerm_route_table.fw_route_table[0].id
-}
-
-resource "azurerm_subnet_route_table_association" "datalb_route_table_association" {
-  count          = (var.HubEnabled && var.FwEnabled) ? 1 : 0
-  subnet_id      = azurerm_subnet.data_lb_subnet.id
   route_table_id = azurerm_route_table.fw_route_table[0].id
 }
 
