@@ -81,10 +81,11 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_subnet" "mgmt" {
-  name                 = "mgmt-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.MgmtSubnetPrefix
+  name                            = "mgmt-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.MgmtSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "gateway" {

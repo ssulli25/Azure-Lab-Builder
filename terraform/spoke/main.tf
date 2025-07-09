@@ -143,18 +143,19 @@ resource "azurerm_virtual_network" "vnet" {
   address_space       = var.VnetAddressSpace
 }
 
-resource "azurerm_subnet" "web_subnet" {
-  name                 = "web-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.WebSubnetPrefix
-}
-
 resource "azurerm_subnet" "appgw_subnet" {
   name                 = "appgw-subnet"
   resource_group_name  = azurerm_resource_group.network_rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = var.AppGwSubnetPrefix
+}
+
+resource "azurerm_subnet" "web_subnet" {
+  name                 = "web-subnet"
+  resource_group_name  = azurerm_resource_group.network_rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = var.WebSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "app_lb_subnet" {
@@ -169,13 +170,7 @@ resource "azurerm_subnet" "app_subnet" {
   resource_group_name  = azurerm_resource_group.network_rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = var.AppSubnetPrefix
-}
-
-resource "azurerm_subnet" "data_subnet" {
-  name                 = "data-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.DataSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "data_lb_subnet" {
@@ -183,6 +178,14 @@ resource "azurerm_subnet" "data_lb_subnet" {
   resource_group_name  = azurerm_resource_group.network_rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = var.DataLbSubnetPrefix
+}
+
+resource "azurerm_subnet" "data_subnet" {
+  name                 = "data-subnet"
+  resource_group_name  = azurerm_resource_group.network_rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = var.DataSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 ### Peerings ###
