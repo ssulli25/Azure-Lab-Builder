@@ -16,7 +16,7 @@ on:
           - 'false'
         default: 'true'
       environment:
-        description: 'Please select a spoke name: dev, test, or prod'
+        description: 'Please select a spoke name: dev or prod'
         required: true
         type: choice
         options:
