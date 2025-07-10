@@ -45,7 +45,7 @@ on:
         options:
           - 'true'
           - 'false'
-        default: 'true'
+        default: 'false'
       vng_enabled:
         description: 'Is a Virtual Network Gateway needed?'
         required: true
@@ -227,10 +227,29 @@ jobs:
         id: deployment_output
         run: echo "::set-output name=run::true"
 
+### Gate to check Hub Deployment status
+  Gate:
+    runs-on: ubuntu-latest
+    needs: Hub_Deployment
+    if: always()
+    outputs:
+      hub_status: ${{ steps.set_status.outputs.hub_status }}
+    steps:
+      - name: Set hub status
+        id: set_status
+        run: |
+          if [[ "${{ needs.Hub_Deployment.result }}" == "failure" ]]; then
+            echo "hub_status=failure" >> $GITHUB_OUTPUT
+          elif [[ "${{ needs.Hub_Deployment.result }}" == "skipped" ]]; then
+            echo "hub_status=skipped" >> $GITHUB_OUTPUT
+          else
+            echo "hub_status=success" >> $GITHUB_OUTPUT
+          fi
+
 ### Spoke with Hub
   App_Verification:
     name: Pre-Verification - ${{ inputs.environment }} environment
-    needs: Hub_Deployment
+    needs: Gate
     runs-on: ubuntu-latest
     steps:
       - name: Set secret names
