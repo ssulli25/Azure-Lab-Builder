@@ -72,6 +72,7 @@ jobs:
   Input_Verification:
     name: User Input Verification
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.terraform_action == 'apply' || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'false') }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -162,6 +163,7 @@ jobs:
     name: Hub Deployment
     needs: Hub_Verification
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.terraform_action == 'apply' || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'false') }}
     steps:
       - name: Set secret names
         id: set_secrets
@@ -230,7 +232,6 @@ jobs:
     name: Pre-Verification - ${{ inputs.environment }} environment
     needs: Hub_Deployment
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.terraform_action == 'apply' || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'true') }}
     steps:
       - name: Set secret names
         id: set_secrets
@@ -311,7 +312,6 @@ jobs:
     name: Deployment - ${{ inputs.environment }} environment
     needs: App_Verification
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.terraform_action == 'apply' || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'true') }}
     steps:
       - name: Set secret names
         id: set_secrets
