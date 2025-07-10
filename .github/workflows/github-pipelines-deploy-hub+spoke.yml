@@ -251,6 +251,7 @@ jobs:
     name: Pre-Verification - ${{ inputs.environment }} environment
     needs: Gate
     runs-on: ubuntu-latest
+    if: (github.event.inputs.terraform_action == 'apply') || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'false' && needs.Gate.outputs.hub_status == 'success') || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'true')
     steps:
       - name: Set secret names
         id: set_secrets
@@ -331,6 +332,7 @@ jobs:
     name: Deployment - ${{ inputs.environment }} environment
     needs: App_Verification
     runs-on: ubuntu-latest
+    if: (github.event.inputs.terraform_action == 'apply') || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'false' && needs.Gate.outputs.hub_status == 'success') || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'true')
     steps:
       - name: Set secret names
         id: set_secrets
