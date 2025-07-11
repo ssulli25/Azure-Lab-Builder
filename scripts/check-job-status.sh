@@ -1,16 +1,13 @@
 #!/usr/bin/env bash
-# filepath: scripts/check-job-status.sh
+# Usage: ./check-job-status.sh <job_result_1> <job_result_2> ...
 
 for status in "$@"; do
-  if [[ "$status" == "failure" ]]; then
-    echo "A previous job failed. Skipping this job."
-    exit 78
-  elif [[ "$status" == "cancelled" ]]; then
-    echo "A previous job was cancelled. Skipping this job."
-    exit 78
-  elif [[ "$status" == "skipped" ]]; then
-    echo "A previous job was skipped. Continuing."
-  else
-    echo "A previous job succeeded. Continuing."
+  if [[ "$status" == "failure" || "$status" == "cancelled" ]]; then
+    echo "A required upstream job failed or was cancelled: $status"
+    exit 78  # GitHub Actions: neutral/skip
   fi
 done
+
+# If we get here, no failures or cancellations were found.
+echo "All required upstream jobs succeeded or were skipped. Continuing."
+exit 0
