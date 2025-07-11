@@ -1,30 +1,13 @@
 #!/usr/bin/env bash
+# Usage: ./check-job-status.sh <job1_result> <job2_result> ...
 
-set -e
-
-echo "Checking upstream job results: $*"
-
-for status in "$@"; do
-  case "$status" in
-    failure)
-      echo "Upstream job failed. Skipping this job."
-      exit 78
-      ;;
-    cancelled)
-      echo "Upstream job was cancelled. Skipping this job."
-      exit 78
-      ;;
-    success)
-      echo "Upstream job succeeded."
-      ;;
-    skipped)
-      echo "Upstream job was skipped."
-      ;;
-    *)
-      echo "Unknown job status: $status"
-      exit 1
-      ;;
-  esac
+for result in "$@"; do
+  if [[ "$result" == "failure" || "$result" == "cancelled" ]]; then
+    echo "A required job failed or was cancelled: $result"
+    exit 1
+  fi
 done
 
-echo "All required upstream jobs succeeded or were skipped. Continuing."
+# If we reach here, all jobs were either 'success' or 'skipped'
+echo "All required jobs succeeded or were skipped. Continuing."
+exit 0
