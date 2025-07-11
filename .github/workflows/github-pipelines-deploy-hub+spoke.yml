@@ -227,38 +227,19 @@ jobs:
         id: deployment_output
         run: echo "::set-output name=run::true"
 
-### Gate to check Hub Deployment status
-  Gate:
-    runs-on: ubuntu-latest
-    needs: Hub_Deployment
-    if: always()
-    outputs:
-      hub_status: ${{ steps.set_status.outputs.hub_status }}
-    steps:
-      - name: Set hub status
-        id: set_status
-        run: |
-          if [[ "${{ needs.Hub_Deployment.result }}" == "failure" ]]; then
-            echo "hub_status=failure" >> $GITHUB_OUTPUT
-          elif [[ "${{ needs.Hub_Deployment.result }}" == "skipped" ]]; then
-            echo "hub_status=skipped" >> $GITHUB_OUTPUT
-          else
-            echo "hub_status=success" >> $GITHUB_OUTPUT
-          fi
-
 ### Spoke with Hub
   App_Verification:
     name: Pre-Verification - ${{ inputs.environment }} environment
-    needs: Gate
+    needs: Hub_Deployment
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: List Directory Scripts File
-        run: ls -la ./scripts
+      - name: Checkout Repository
+        uses: actions/checkout@v2
       - name: Make scripts executable
-        run: chmod +x ./scripts/check-hub-status.sh
-      - name: Check Hub Deployment Status
-        run: ./scripts/check-hub-status.sh ${{ needs.Gate.outputs.hub_status }}
+        run: chmod +x ./scripts/check-job-status.sh
+      - name: Check Previous Job Status
+        run: ./scripts/check-job-status.sh ${{ needs.Hub_Deployment.result }}
       - name: Set secret names
         id: set_secrets
         run: |
@@ -271,8 +252,6 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
-      - name: Checkout Repository
-        uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -340,10 +319,12 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
       - name: Make scripts executable
-        run: chmod +x ./scripts/check-hub-status.sh
-      - name: Check Hub Deployment Status
-        run: ./scripts/check-hub-status.sh ${{ needs.Gate.outputs.hub_status }}
+        run: chmod +x ./scripts/check-job-status.sh
+      - name: Check Previous Job Status
+        run: ./scripts/check-job-status.sh ${{ needs.App_Verification.result }}
       - name: Set secret names
         id: set_secrets
         run: |
@@ -356,8 +337,6 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
-      - name: Checkout Repository
-        uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
