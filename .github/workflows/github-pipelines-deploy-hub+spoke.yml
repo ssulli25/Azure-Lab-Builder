@@ -234,7 +234,7 @@ jobs:
 ### Spoke with Hub
   App_Verification:
     name: Verification - ${{ inputs.environment }} environment
-    needs: Hub_Deployment
+    needs: [Hub_Verification, Hub_Deployment]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -319,7 +319,7 @@ jobs:
 
   App_Deployment:
     name: Deployment - ${{ inputs.environment }} environment
-    needs: App_Verification
+    needs: [Hub_Verification, Hub_Deployment, App_Verification]
     runs-on: ubuntu-latest
     if: always()
     steps:
