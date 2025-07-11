@@ -165,6 +165,12 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.terraform_action == 'apply' || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'false') }}
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Make scripts executable
+        run: chmod +x ./scripts/check-job-status.sh
+      - name: Check Previous Job Status
+        run: ./scripts/check-job-status.sh ${{ needs.Hub_Verification.result }}
       - name: Set secret names
         id: set_secrets
         run: |
@@ -176,8 +182,6 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
-      - name: Checkout Repository
-        uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
