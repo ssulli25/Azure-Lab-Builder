@@ -251,8 +251,12 @@ jobs:
     name: Pre-Verification - ${{ inputs.environment }} environment
     needs: Gate
     runs-on: ubuntu-latest
-    if: (github.event.inputs.terraform_action == 'apply') || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'false' && needs.Gate.outputs.hub_status == 'success') || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'true')
+    if: always()
     steps:
+      - name: Make scripts executable
+        run: chmod +x ./scripts/check-hub-status.sh
+      - name: Check Hub Deployment Status
+        run: ./scripts/check-hub-status.sh ${{ needs.Gate.outputs.hub_status }}
       - name: Set secret names
         id: set_secrets
         run: |
@@ -332,8 +336,12 @@ jobs:
     name: Deployment - ${{ inputs.environment }} environment
     needs: App_Verification
     runs-on: ubuntu-latest
-    if: (github.event.inputs.terraform_action == 'apply') || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'false' && needs.Gate.outputs.hub_status == 'success') || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'true')
+    if: always()
     steps:
+      - name: Make scripts executable
+        run: chmod +x ./scripts/check-hub-status.sh
+      - name: Check Hub Deployment Status
+        run: ./scripts/check-hub-status.sh ${{ needs.Gate.outputs.hub_status }}
       - name: Set secret names
         id: set_secrets
         run: |
