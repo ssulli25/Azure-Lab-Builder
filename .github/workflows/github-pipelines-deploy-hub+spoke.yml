@@ -85,6 +85,8 @@ jobs:
     needs: Input_Verification 
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
       - name: Set secret names
         id: set_secrets
         run: |
@@ -96,8 +98,6 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
-      - name: Checkout Repository
-        uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -243,7 +243,7 @@ jobs:
       - name: Make scripts executable
         run: chmod +x ./scripts/check-job-status.sh
       - name: Check Previous Job Status
-        run: ./scripts/check-job-status.sh ${{ needs.Hub_Deployment.result }}
+        run: ./scripts/check-job-status.sh ${{ needs.Hub_Verification.result }} ${{ needs.Hub_Deployment.result }}
       - name: Set secret names
         id: set_secrets
         run: |
@@ -328,7 +328,7 @@ jobs:
       - name: Make scripts executable
         run: chmod +x ./scripts/check-job-status.sh
       - name: Check Previous Job Status
-        run: ./scripts/check-job-status.sh ${{ needs.App_Verification.result }}
+        run: ./scripts/check-job-status.sh ${{ needs.Hub_Verification.result }} ${{ needs.Hub_Deployment.result }} ${{ needs.App_Verification.result }}
       - name: Set secret names
         id: set_secrets
         run: |
