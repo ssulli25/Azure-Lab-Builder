@@ -81,7 +81,7 @@ jobs:
       - name: Verify Deployment of Hub & Spoke Architecture
         run: ./scripts/verify-architecture-selection.sh ${{ github.event.inputs.architecture }}
   Hub_Verification:
-    name: Hub Pre-Verification
+    name: Hub Verification
     needs: Input_Verification 
     runs-on: ubuntu-latest
     steps:
@@ -233,7 +233,7 @@ jobs:
 
 ### Spoke with Hub
   App_Verification:
-    name: Pre-Verification - ${{ inputs.environment }} environment
+    name: Verification - ${{ inputs.environment }} environment
     needs: Hub_Deployment
     runs-on: ubuntu-latest
     if: always()
