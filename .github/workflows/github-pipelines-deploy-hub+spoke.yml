@@ -253,6 +253,8 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     steps:
+      - name: List Directory Scripts File
+        run: ls -la ./scripts
       - name: Make scripts executable
         run: chmod +x ./scripts/check-hub-status.sh
       - name: Check Hub Deployment Status
