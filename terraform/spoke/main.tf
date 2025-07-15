@@ -377,26 +377,26 @@ resource "azurerm_network_security_group" "web_nsg" {
   }
 
   security_rule {
-    name                       = "Allow-HTTP"
+    name                       = "Allow-HTTP-From-AppGW-Subnet"
     priority                   = 100
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "80"
-    source_address_prefix      = "*"
+    source_address_prefix      = azurerm_subnet.appgw_subnet.address_prefixes[0]
     destination_address_prefix = var.WebSubnetPrefix[0]
   }
 
   security_rule {
-    name                       = "Allow-HTTPS"
+    name                       = "Allow-HTTPS-From-AppGW-Subnet"
     priority                   = 110
     direction                  = "Inbound"
     access                     = "Allow"
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "443"
-    source_address_prefix      = "*"
+    source_address_prefix      = azurerm_subnet.appgw_subnet.address_prefixes[0]
     destination_address_prefix = var.WebSubnetPrefix[0]
   }
 
