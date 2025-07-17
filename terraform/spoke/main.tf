@@ -195,6 +195,7 @@ resource "azurerm_virtual_network_peering" "hub_to_spoke" {
   virtual_network_name         = data.azurerm_virtual_network.hub[0].name
   remote_virtual_network_id    = azurerm_virtual_network.vnet.id
   allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
 }
 
 resource "azurerm_virtual_network_peering" "spoke_to_hub" {
@@ -204,6 +205,7 @@ resource "azurerm_virtual_network_peering" "spoke_to_hub" {
   virtual_network_name         = azurerm_virtual_network.vnet.name
   remote_virtual_network_id    = data.azurerm_virtual_network.hub[0].id
   allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
 }
 
 ### Web Application Gateway ###
@@ -436,7 +438,7 @@ resource "azurerm_network_security_group" "web_nsg" {
     destination_address_prefix = var.WebSubnetPrefix[0]
   }
 
-    security_rule {
+  security_rule {
     name                       = "Allow-Bastion-RDP"
     priority                   = 150
     direction                  = "Inbound"
@@ -541,7 +543,7 @@ resource "azurerm_network_security_group" "app_nsg" {
     destination_address_prefix = var.AppSubnetPrefix[0]
   }
 
-    security_rule {
+  security_rule {
     name                       = "Allow-Bastion-RDP"
     priority                   = 150
     direction                  = "Inbound"
@@ -623,7 +625,7 @@ resource "azurerm_network_security_group" "data_nsg" {
     destination_address_prefix = var.DataSubnetPrefix[0]
   }
 
-    security_rule {
+  security_rule {
     name                       = "Allow-Bastion-SSH"
     priority                   = 140
     direction                  = "Inbound"
@@ -635,7 +637,7 @@ resource "azurerm_network_security_group" "data_nsg" {
     destination_address_prefix = var.DataSubnetPrefix[0]
   }
 
-    security_rule {
+  security_rule {
     name                       = "Allow-Bastion-RDP"
     priority                   = 150
     direction                  = "Inbound"
