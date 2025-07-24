@@ -31,7 +31,7 @@ on:
           - 'destroy'
         default: 'apply'
       delete_spoke_only:
-        description: 'Destroy the selected spoke environment (To work terraform_action must be set to destroy)?'
+        description: 'Destroy the selected spoke environment only (terraform_action must be set to destroy)?'
         required: true
         type: choice
         options:
