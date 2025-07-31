@@ -85,7 +85,6 @@ resource "azurerm_subnet" "mgmt" {
   resource_group_name             = azurerm_resource_group.network_rg.name
   virtual_network_name            = azurerm_virtual_network.vnet.name
   address_prefixes                = var.MgmtSubnetPrefix
-  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "gateway" {
@@ -181,11 +180,6 @@ resource "azurerm_route_table" "fw_route_table" {
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
   }
-  route {
-    name           = "local-route"
-    address_prefix = tolist(azurerm_virtual_network.vnet.address_space)[0]
-    next_hop_type  = "VnetLocal"
-  }
 }
 
 resource "azurerm_route_table" "gateway_route_table" {
@@ -274,6 +268,13 @@ resource "azurerm_firewall_policy_rule_collection_group" "collection_group_polic
       name                  = "https-rule"
       source_addresses      = ["*"]
       destination_ports     = ["443"]
+      protocols             = ["TCP"]
+      destination_addresses = ["*"]
+    }
+    rule {
+      name                  = "http-rule"
+      source_addresses      = ["*"]
+      destination_ports     = ["80"]
       protocols             = ["TCP"]
       destination_addresses = ["*"]
     }

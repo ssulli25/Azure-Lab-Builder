@@ -691,11 +691,6 @@ resource "azurerm_route_table" "fw_route_table" {
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = data.azurerm_firewall.hub[0].ip_configuration[0].private_ip_address
   }
-  route {
-    name           = "local-route"
-    address_prefix = tolist(azurerm_virtual_network.vnet.address_space)[0]
-    next_hop_type  = "VnetLocal"
-  }
 }
 
 resource "azurerm_subnet_route_table_association" "web_route_table_association" {
