@@ -175,8 +175,20 @@ resource "azurerm_route_table" "fw_route_table" {
   location            = azurerm_resource_group.network_rg.location
 
   route {
-    name                   = "default-route"
+    name                   = "default-firewall-route"
     address_prefix         = "0.0.0.0/0"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
+  }
+  route {
+    name                   = "dev-firewall-route"
+    address_prefix         = var.DevAddressSpace
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
+  }
+  route {
+    name                   = "prod-firewall-route"
+    address_prefix         = var.ProdAddressSpace
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
   }
@@ -189,8 +201,8 @@ resource "azurerm_route_table" "gateway_route_table" {
   location            = azurerm_resource_group.network_rg.location
 
   route {
-    name                   = "gateway-route"
-    address_prefix         = tolist(azurerm_virtual_network.vnet.address_space)[0]
+    name                   = "gateway-firewall-route"
+    address_prefix         = var.GatewaySubnetPrefix[0]
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
   }
@@ -265,16 +277,16 @@ resource "azurerm_firewall_policy_rule_collection_group" "collection_group_polic
     priority = 1000
     action   = "Allow"
     rule {
-      name                  = "https-rule"
+      name                  = "http-rule"
       source_addresses      = ["*"]
-      destination_ports     = ["443"]
+      destination_ports     = ["80"]
       protocols             = ["TCP"]
       destination_addresses = ["*"]
     }
     rule {
-      name                  = "http-rule"
+      name                  = "https-rule"
       source_addresses      = ["*"]
-      destination_ports     = ["80"]
+      destination_ports     = ["443"]
       protocols             = ["TCP"]
       destination_addresses = ["*"]
     }

@@ -18,6 +18,10 @@ variable "BastionSubnetPrefix" {
   type = list(string)
 }
 
+variable "DevAddressSpace" {
+  type = string
+}
+
 variable "FwEnabled" {
   type = bool
 }
@@ -28,6 +32,10 @@ variable "GatewaySubnetPrefix" {
 
 variable "MgmtSubnetPrefix" {
   type = list(string)
+}
+
+variable "ProdAddressSpace" {
+  type = string
 }
 
 variable "Region" {

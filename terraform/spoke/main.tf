@@ -23,6 +23,15 @@ data "azurerm_subnet" "mgmt" {
   resource_group_name  = data.azurerm_virtual_network.hub[0].resource_group_name
 }
 
+### Virtual Network Gateway Subnet ###
+data "azurerm_subnet" "gateway" {
+  count                = var.HubEnabled ? 1 : 0
+  provider             = azurerm.hub
+  name                 = "GatewaySubnet"
+  virtual_network_name = data.azurerm_virtual_network.hub[0].name
+  resource_group_name  = data.azurerm_virtual_network.hub[0].resource_group_name
+}
+
 ### Hub Azure Firewall ###
 data "azurerm_firewall" "hub" {
   count               = (var.HubEnabled && var.FwEnabled) ? 1 : 0
@@ -30,6 +39,7 @@ data "azurerm_firewall" "hub" {
   name                = "hub-${var.Region}-firewall"
   resource_group_name = "hub-network-${var.Region}-rg"
 }
+
 
 #========#
 # Locals #
@@ -686,8 +696,20 @@ resource "azurerm_route_table" "fw_route_table" {
   location            = azurerm_resource_group.network_rg.location
 
   route {
-    name                   = "default-route"
+    name                   = "default-firewall-route"
     address_prefix         = "0.0.0.0/0"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = data.azurerm_firewall.hub[0].ip_configuration[0].private_ip_address
+  }
+  route {
+    name                   = "mgmt-firewall-route"
+    address_prefix         = data.azurerm_subnet.mgmt[0].address_prefixes[0]
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = data.azurerm_firewall.hub[0].ip_configuration[0].private_ip_address
+  }
+  route {
+    name                   = "gateway-firewall-route"
+    address_prefix         = data.azurerm_subnet.gateway[0].address_prefixes[0]
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = data.azurerm_firewall.hub[0].ip_configuration[0].private_ip_address
   }
