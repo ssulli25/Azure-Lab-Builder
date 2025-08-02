@@ -192,6 +192,12 @@ resource "azurerm_route_table" "fw_route_table" {
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
   }
+  route {
+    name                   = "gateway-firewall-route"
+    address_prefix         = var.GatewaySubnetPrefix[0]
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
+  }
 }
 
 resource "azurerm_route_table" "gateway_route_table" {
@@ -201,8 +207,26 @@ resource "azurerm_route_table" "gateway_route_table" {
   location            = azurerm_resource_group.network_rg.location
 
   route {
-    name                   = "gateway-firewall-route"
-    address_prefix         = var.GatewaySubnetPrefix[0]
+    name                   = "default-firewall-route"
+    address_prefix         = "0.0.0.0/0"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
+  }
+  route {
+    name                   = "dev-firewall-route"
+    address_prefix         = var.DevAddressSpace
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
+  }
+  route {
+    name                   = "prod-firewall-route"
+    address_prefix         = var.ProdAddressSpace
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
+  }
+  route {
+    name                   = "mgmt-firewall-route"
+    address_prefix         = var.MgmtSubnetPrefix[0]
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
   }
