@@ -46,23 +46,45 @@ Best for application testing, self-contained environments or when centralized sh
 
 ## Repository Structure
 
-```markdown
+```
 Azure-Lab-Builder/
 ├── README.md
 ├── packer/
-│   ├── build.pkr.hcl
+│   ├── build.pkr.hcl                    # Packer build configuration
 │   └── ansible-playbooks/
-│       ├── app.yml
-│       ├── data.yml
-│       └── web.yml
+│       ├── app.yml                      # .NET application server configuration
+│       ├── data.yml                     # PostgreSQL database configuration
+│       └── web.yml                      # Nginx web server configuration
 ├── scripts/
-│   └── verify-architecture-selection.sh
+│   ├── check-job-status.sh              # CI/CD job validation script
+│   └── verify-architecture-selection.sh # Architecture deployment validation
 ├── terraform/
 │   ├── hub/
-│   │   ├── main.tf
-│   │   ├── providers.tf
-│   │   └── variables.tf
+│   │   ├── main.tf                      # Hub infrastructure resources
+│   │   ├── providers.tf                 # Azure provider configuration
+│   │   └── variables.tf                 # Hub configuration variables
 │   └── spoke/
-│       ├── main.tf
-│       ├── providers.tf
-│       └── variables.tf
+│       ├── main.tf                      # Spoke infrastructure resources
+│       ├── providers.tf                 # Azure provider configuration
+│       └── variables.tf                 # Spoke configuration variables
+└── .github/
+    └── workflows/
+        ├── github-pipelines-build.yml              # General build pipeline
+        ├── github-pipelines-build-packer.yml       # Packer image build pipeline
+        ├── github-pipelines-deploy-hub+spoke.yml   # Hub-and-spoke deployment
+        └── github-pipelines-deploy-stand+alone.yml # Stand-alone deployment
+```
+
+---
+
+## Prerequisites
+
+### Required Tools
+- **[Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)** (>= 2.30.0)
+- **[Terraform](https://www.terraform.io/downloads.html)** (>= 1.0.0)
+- **[Packer](https://www.packer.io/downloads)** (>= 1.7.0) - For custom image builds
+- **[Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)** (>= 4.0.0) - For server configuration
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
