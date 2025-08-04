@@ -10,7 +10,7 @@ on:
 
 env:
   majorVersion: '25'
-  minorVersion: '08'
+  minorVersion: '07'
 
 # Build pipeline jobs
 jobs:

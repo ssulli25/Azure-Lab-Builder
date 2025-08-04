@@ -8,7 +8,11 @@ on:
         required: true
         type: choice
         options:
-          - 'restart-vms-per-sub.ps1'
+          - 'restart-vm-vmss-per-sub.ps1'
+          - 'ms-windows-vm-vmss-update.ps1'
+          - 'sub-cost-estimation.ps1'
+          - 'sub-quota-usage.ps1'
+          - 'ubuntu-linux-vm-vmss-update.ps1'
       environment:
         description: 'Target environment'
         required: true
@@ -45,10 +49,10 @@ jobs:
             Write-Error "Unknown environment: $env"
             exit 1
           }
-      - name: Run restart-vms-per-sub.ps1
+      - name: Run selected script
         shell: pwsh
         run: |
-          $script = "${{ env.AZURE_PS_SCRIPT_PATH }}\restart-vms-per-sub.ps1"
+          $script = "${{ env.AZURE_PS_SCRIPT_PATH }}\restart-vm-vmss-per-sub.ps1.ps1"
           if (-not "${{ env.SUB_ID }}") {
             Write-Error "Subscription ID not found for environment"
             exit 1
