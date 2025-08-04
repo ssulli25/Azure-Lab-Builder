@@ -1,3 +1,6 @@
+# Name of build pipeline
+name: build.sls.lab
+
 # Trigger to run pipeline
 on:
   # Triggers the workflow on push request events
@@ -8,9 +11,6 @@ on:
 env:
   majorVersion: '25'
   minorVersion: '08'
-
-# Name of build pipeline
-name: build.sls.lab
 
 # Build pipeline jobs
 jobs:

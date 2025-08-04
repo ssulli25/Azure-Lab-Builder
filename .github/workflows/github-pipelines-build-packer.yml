@@ -1,3 +1,6 @@
+# Name of deploy pipeline
+name: build.sls.packer
+
 # General Notes
 # -Passing lists directly through GitHub Actions Secrets or Variables causes deployment issues.
 
@@ -32,9 +35,6 @@ on:
           - 'app'
           - 'data'
         default: 'web'
-
-# Name of deploy pipeline
-name: build.sls.packer
 
 # Deploy pipeline jobs
 jobs:
