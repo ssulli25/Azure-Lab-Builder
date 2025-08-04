@@ -16,7 +16,7 @@ on:
           - 'false'
         default: 'true'
       environment:
-        description: 'Please select a spoke name: dev, test, or prod'
+        description: 'Please select a spoke name: dev or prod'
         required: true
         type: choice
         options:
@@ -49,7 +49,7 @@ jobs:
       - name: Verify Deployment of Stand-Alone Architecture
         run: ./scripts/verify-architecture-selection.sh ${{ github.event.inputs.architecture }}
   App_Verification:
-    name: Pre-Verification - ${{ inputs.environment }} environment
+    name: Verification - ${{ inputs.environment }} environment
     needs: Input_Verification
     runs-on: ubuntu-latest
     steps:

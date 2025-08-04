@@ -81,10 +81,10 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_subnet" "mgmt" {
-  name                 = "mgmt-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.MgmtSubnetPrefix
+  name                            = "mgmt-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.MgmtSubnetPrefix
 }
 
 resource "azurerm_subnet" "gateway" {
@@ -175,15 +175,28 @@ resource "azurerm_route_table" "fw_route_table" {
   location            = azurerm_resource_group.network_rg.location
 
   route {
-    name                   = "default-route"
+    name                   = "default-firewall-route"
     address_prefix         = "0.0.0.0/0"
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
   }
   route {
-    name           = "local-route"
-    address_prefix = tolist(azurerm_virtual_network.vnet.address_space)[0]
-    next_hop_type  = "VnetLocal"
+    name                   = "dev-firewall-route"
+    address_prefix         = var.DevAddressSpace
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
+  }
+  route {
+    name                   = "prod-firewall-route"
+    address_prefix         = var.ProdAddressSpace
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
+  }
+  route {
+    name                   = "gateway-firewall-route"
+    address_prefix         = var.GatewaySubnetPrefix[0]
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
   }
 }
 
@@ -194,8 +207,20 @@ resource "azurerm_route_table" "gateway_route_table" {
   location            = azurerm_resource_group.network_rg.location
 
   route {
-    name                   = "gateway-route"
-    address_prefix         = tolist(azurerm_virtual_network.vnet.address_space)[0]
+    name                   = "dev-firewall-route"
+    address_prefix         = var.DevAddressSpace
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
+  }
+  route {
+    name                   = "prod-firewall-route"
+    address_prefix         = var.ProdAddressSpace
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
+  }
+  route {
+    name                   = "mgmt-firewall-route"
+    address_prefix         = var.MgmtSubnetPrefix[0]
     next_hop_type          = "VirtualAppliance"
     next_hop_in_ip_address = azurerm_firewall.firewall[0].ip_configuration[0].private_ip_address
   }
@@ -269,6 +294,13 @@ resource "azurerm_firewall_policy_rule_collection_group" "collection_group_polic
     name     = "network-rule-collection-primary"
     priority = 1000
     action   = "Allow"
+    rule {
+      name                  = "http-rule"
+      source_addresses      = ["*"]
+      destination_ports     = ["80"]
+      protocols             = ["TCP"]
+      destination_addresses = ["*"]
+    }
     rule {
       name                  = "https-rule"
       source_addresses      = ["*"]

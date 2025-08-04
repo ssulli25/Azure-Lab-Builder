@@ -15,7 +15,7 @@ on:
           - 'false'
         default: 'true'
       environment:
-        description: 'Please select a spoke name: dev, test, or prod'
+        description: 'Please select a spoke name: dev or prod'
         required: true
         type: choice
         options:
@@ -30,6 +30,14 @@ on:
           - 'apply'
           - 'destroy'
         default: 'apply'
+      delete_spoke_only:
+        description: 'Destroy the selected spoke environment only (terraform_action must be set to destroy)?'
+        required: true
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+        default: 'false'
       bastion_enabled:
         description: 'Is Azure Bastion needed?'
         required: true
@@ -37,7 +45,7 @@ on:
         options:
           - 'true'
           - 'false'
-        default: 'true'
+        default: 'false'
       vng_enabled:
         description: 'Is a Virtual Network Gateway needed?'
         required: true
@@ -64,6 +72,7 @@ jobs:
   Input_Verification:
     name: User Input Verification
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.terraform_action == 'apply' || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'false') }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -72,10 +81,12 @@ jobs:
       - name: Verify Deployment of Hub & Spoke Architecture
         run: ./scripts/verify-architecture-selection.sh ${{ github.event.inputs.architecture }}
   Hub_Verification:
-    name: Hub Pre-Verification
+    name: Hub Verification
     needs: Input_Verification 
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
       - name: Set secret names
         id: set_secrets
         run: |
@@ -87,8 +98,6 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
-      - name: Checkout Repository
-        uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -154,7 +163,14 @@ jobs:
     name: Hub Deployment
     needs: Hub_Verification
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.terraform_action == 'apply' || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'false') }}
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Make scripts executable
+        run: chmod +x ./scripts/check-job-status.sh
+      - name: Check Previous Job Status
+        run: ./scripts/check-job-status.sh ${{ needs.Hub_Verification.result }}
       - name: Set secret names
         id: set_secrets
         run: |
@@ -166,8 +182,6 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
-      - name: Checkout Repository
-        uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -219,10 +233,17 @@ jobs:
 
 ### Spoke with Hub
   App_Verification:
-    name: Pre-Verification - ${{ inputs.environment }} environment
-    needs: Hub_Deployment
+    name: Verification - ${{ inputs.environment }} environment
+    needs: [Hub_Verification, Hub_Deployment]
     runs-on: ubuntu-latest
+    if: always()
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Make scripts executable
+        run: chmod +x ./scripts/check-job-status.sh
+      - name: Check Previous Job Status
+        run: ./scripts/check-job-status.sh ${{ needs.Hub_Verification.result }} ${{ needs.Hub_Deployment.result }}
       - name: Set secret names
         id: set_secrets
         run: |
@@ -235,8 +256,6 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
-      - name: Checkout Repository
-        uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
@@ -300,9 +319,16 @@ jobs:
 
   App_Deployment:
     name: Deployment - ${{ inputs.environment }} environment
-    needs: App_Verification
+    needs: [Hub_Verification, Hub_Deployment, App_Verification]
     runs-on: ubuntu-latest
+    if: always()
     steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Make scripts executable
+        run: chmod +x ./scripts/check-job-status.sh
+      - name: Check Previous Job Status
+        run: ./scripts/check-job-status.sh ${{ needs.Hub_Verification.result }} ${{ needs.Hub_Deployment.result }} ${{ needs.App_Verification.result }}
       - name: Set secret names
         id: set_secrets
         run: |
@@ -315,8 +341,6 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
-      - name: Checkout Repository
-        uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
