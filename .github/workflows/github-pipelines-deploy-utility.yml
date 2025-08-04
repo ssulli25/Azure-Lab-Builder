@@ -1,0 +1,60 @@
+name: deploy.sls.utility
+
+on:
+  workflow_dispatch:
+    inputs:
+      script_name:
+        description: 'Script to run'
+        required: true
+        type: choice
+        options:
+          - 'restart-vm-vmss-per-sub.ps1'
+          - 'ms-windows-vm-vmss-update.ps1'
+          - 'sub-cost-estimation.ps1'
+          - 'sub-quota-usage.ps1'
+          - 'ubuntu-linux-vm-vmss-update.ps1'
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - 'prod'
+          - 'dev'
+          - 'hub'
+
+env:
+  AZURE_PS_SCRIPT_PATH: 'scripts'
+
+jobs:
+  Run_Utility_Script:
+    name: Run Utility Script
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Map Environment to Subscription ID
+        run: |
+          $env = "${{ github.event.inputs.environment }}"
+          if ($env -eq "prod") {
+            echo "SUB_ID=${{ secrets.PROD_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+          } elseif ($env -eq "dev") {
+            echo "SUB_ID=${{ secrets.DEV_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+          } elseif ($env -eq "hub") {
+            echo "SUB_ID=${{ secrets.HUB_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+          } else {
+            Write-Error "Unknown environment: $env"
+            exit 1
+          }
+      - name: Run selected script
+        shell: pwsh
+        run: |
+          $script = "${{ env.AZURE_PS_SCRIPT_PATH }}\restart-vm-vmss-per-sub.ps1.ps1"
+          if (-not "${{ env.SUB_ID }}") {
+            Write-Error "Subscription ID not found for environment"
+            exit 1
+          }
+          pwsh -File $script -SubscriptionId "${{ env.SUB_ID }}"

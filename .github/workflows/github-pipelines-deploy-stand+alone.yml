@@ -1,3 +1,6 @@
+# Name of deploy pipeline
+name: deploy.sls.stand+alone
+
 # General Notes
 # -Passing lists directly through GitHub Actions Secrets or Variables causes deployment issues.
 
@@ -31,9 +34,6 @@ on:
           - 'apply'
           - 'destroy'
         default: 'apply'
-
-# Name of deploy pipeline
-name: deploy.sls.stand+alone
 
 # Deploy pipeline jobs
 jobs:
