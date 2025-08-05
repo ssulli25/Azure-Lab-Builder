@@ -43,24 +43,25 @@ jobs:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
           enable-AzPSSession: true
       - name: Map Environment to Subscription ID
+        shell: pwsh
         run: |
-          $env = "${{ github.event.inputs.environment }}"
-          if ($env -eq "prod") {
-            echo "SUB_ID=${{ secrets.PROD_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
-          } elseif ($env -eq "dev") {
-            echo "SUB_ID=${{ secrets.DEV_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
-          } elseif ($env -eq "hub") {
-            echo "SUB_ID=${{ secrets.HUB_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
+          $envName = "${{ github.event.inputs.environment }}"
+          if ($envName -eq "prod") {
+            "SUB_ID=${{ secrets.PROD_SUBSCRIPTION_ID }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          } elseif ($envName -eq "dev") {
+            "SUB_ID=${{ secrets.DEV_SUBSCRIPTION_ID }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          } elseif ($envName -eq "hub") {
+            "SUB_ID=${{ secrets.HUB_SUBSCRIPTION_ID }}" | Out-File -FilePath $env:GITHUB_ENV -Append
           } else {
-            Write-Error "Unknown environment: $env"
+            Write-Error "Unknown environment: $envName"
             exit 1
           }
       - name: Run selected script
         shell: pwsh
         run: |
-          $script = "${{ env.AZURE_PS_SCRIPT_PATH }}\restart-vm-vmss-per-sub.ps1.ps1"
+          $script = "${{ env.AZURE_PS_SCRIPT_PATH }}\${{ github.event.inputs.script_name }}"
           if (-not "${{ env.SUB_ID }}") {
             Write-Error "Subscription ID not found for environment"
             exit 1
           }
-          pwsh -File $script -SubscriptionId "${{ env.SUB_ID }}"
+          & $script -SubscriptionId "${{ env.SUB_ID }}"
