@@ -9,7 +9,6 @@ on:
         type: choice
         options:
           - 'restart-vm-vmss-per-sub.ps1'
-          - 'ms-windows-vm-vmss-update.ps1'
           - 'sub-cost-estimation.ps1'
           - 'sub-quota-usage.ps1'
           - 'ubuntu-linux-vm-vmss-update.ps1'
