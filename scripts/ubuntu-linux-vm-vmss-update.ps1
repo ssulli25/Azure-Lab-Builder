@@ -13,8 +13,7 @@ foreach ($vm in $ubuntuVMs) {
         --resource-group $vm.resourceGroup `
         --name $vm.name `
         --command-id RunShellScript `
-        --scripts "sudo apt update && sudo apt upgrade -y" `
-        --output table
+        --scripts "sudo apt update && sudo apt upgrade -y"
 }
 
 # Update Ubuntu VMSS instances
@@ -28,7 +27,6 @@ foreach ($vmss in $vmssList) {
             --name $vmss.name `
             --instance-id $id `
             --command-id RunShellScript `
-            --scripts "sudo apt update && sudo apt upgrade -y" `
-            --output table
+            --scripts "sudo apt update && sudo apt upgrade -y"
     }
 }
