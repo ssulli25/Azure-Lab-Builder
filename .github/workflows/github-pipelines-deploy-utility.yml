@@ -28,7 +28,7 @@ env:
 jobs:
   Run_Utility_Script:
     name: Run Utility Script
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
