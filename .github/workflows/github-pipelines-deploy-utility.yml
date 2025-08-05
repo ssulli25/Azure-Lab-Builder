@@ -28,18 +28,20 @@ env:
 jobs:
   Run_Utility_Script:
     name: Run Utility Script
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Set secret names
         id: set_secrets
+        shell: pwsh
         run: |
-          echo "AZ_SP_SECRET_NAME=AZ_SP_${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          "AZ_SP_SECRET_NAME=AZ_SP_${{ github.event.inputs.environment }}" | Out-File -FilePath $env:GITHUB_ENV -Append
       - name: Login to Azure
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
+          enable-AzPSSession: true
       - name: Map Environment to Subscription ID
         run: |
           $env = "${{ github.event.inputs.environment }}"
