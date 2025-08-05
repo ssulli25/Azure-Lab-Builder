@@ -10,8 +10,14 @@ az account set --subscription $SubscriptionId
 Write-Host "=== VM Quota Usage ==="
 az vm list-usage --location $Location -o table
 
-Write-Host "`n=== Storage Quota Usage ==="
+Write-Host ""
+
+Write-Host "=== Storage Quota Usage ==="
 az storage account show-usage --location $Location -o table
 
-Write-Host "`n=== Resource Groups in Location ==="
+Write-Host ""
+
+Write-Host "=== Resource Groups in Location ==="
 az group list --query "[?location=='$Location'].{Name:name,Location:location}" -o table
+
+Write-Host ""

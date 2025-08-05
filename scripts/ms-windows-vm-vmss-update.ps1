@@ -13,7 +13,7 @@ foreach ($vm in $windowsVMs) {
         --resource-group $vm.resourceGroup `
         --name $vm.name `
         --command-id RunPowerShellScript `
-        --scripts "Install-WindowsUpdate -AcceptAll -AutoReboot"
+        --scripts "Install-Module -Name PSWindowsUpdate -Force; Import-Module PSWindowsUpdate; Get-WindowsUpdate -AcceptAll -Install -AutoReboot"
 }
 
 # Update Windows VMSS instances
@@ -27,6 +27,6 @@ foreach ($vmss in $vmssList) {
             --name $vmss.name `
             --instance-id $id `
             --command-id RunPowerShellScript `
-            --scripts "Install-WindowsUpdate -AcceptAll -AutoReboot"
+            --scripts "Install-Module -Name PSWindowsUpdate -Force; Import-Module PSWindowsUpdate; Get-WindowsUpdate -AcceptAll -Install -AutoReboot"
     }
 }

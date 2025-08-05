@@ -22,7 +22,7 @@ on:
           - 'dev'
           - 'hub'
       location:
-        description: 'Target location - applicable for quota usage script'
+        description: 'Target location (not required) - applicable for quota usage script'
         required: false
         default: 'eastus2'
         type: string
@@ -60,7 +60,7 @@ jobs:
             Write-Error "Unknown environment: $envName"
             exit 1
           }
-      - name: Run selected script
+      - name: Run selected script - ${{ github.event.inputs.script_name }}
         shell: pwsh
         run: |
           $script = "${{ env.AZURE_PS_SCRIPT_PATH }}\${{ github.event.inputs.script_name }}"
