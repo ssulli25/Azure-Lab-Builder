@@ -21,7 +21,11 @@ on:
           - 'prod'
           - 'dev'
           - 'hub'
-
+      location:
+        description: 'Target location - applicable for quota usage script'
+        required: false
+        default: 'eastus2'
+        type: string
 env:
   AZURE_PS_SCRIPT_PATH: 'scripts'
 
@@ -64,4 +68,8 @@ jobs:
             Write-Error "Subscription ID not found for environment"
             exit 1
           }
-          & $script -SubscriptionId "${{ env.SUB_ID }}"
+          if ("${{ github.event.inputs.script_name }}" -eq "sub-quota-usage.ps1") {
+            & $script -SubscriptionId "${{ env.SUB_ID }}" -Location "${{ github.event.inputs.location }}"
+          } else {
+            & $script -SubscriptionId "${{ env.SUB_ID }}"
+          }

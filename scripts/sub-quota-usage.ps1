@@ -1,11 +1,9 @@
 param(
     [Parameter(Mandatory=$true)]
     [string]$SubscriptionId,
-    # [Parameter(Mandatory=$true)]
-    # [string]$Location
+    [Parameter(Mandatory=$true)]
+    [string]$Location
 )
-
-$Location = "eastus2"
 
 az account set --subscription $SubscriptionId
 
