@@ -32,6 +32,10 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Set secret names
+        id: set_secrets
+        run: |
+          echo "AZ_SP_SECRET_NAME=AZ_SP_${{ github.event.inputs.environment }}" >> $GITHUB_ENV
       - name: Login to Azure
         uses: azure/login@v1
         with:
