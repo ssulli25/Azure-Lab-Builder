@@ -781,24 +781,6 @@ resource "azurerm_nat_gateway" "nat_gateway" {
   sku_name            = "Standard"
 }
 
-resource "azurerm_subnet_nat_gateway_association" "web_subnet_nat_association" {
-  count          = (var.HubEnabled && var.FwEnabled) ? 0 : 1
-  subnet_id      = azurerm_subnet.web_subnet.id
-  nat_gateway_id = azurerm_nat_gateway.nat_gateway.id
-}
-
-resource "azurerm_subnet_nat_gateway_association" "app_subnet_nat_association" {
-  count          = (var.HubEnabled && var.FwEnabled) ? 0 : 1
-  subnet_id      = azurerm_subnet.app_subnet.id
-  nat_gateway_id = azurerm_nat_gateway.nat_gateway.id
-}
-
-resource "azurerm_subnet_nat_gateway_association" "data_subnet_nat_association" {
-  count          = (var.HubEnabled && var.FwEnabled) ? 0 : 1
-  subnet_id      = azurerm_subnet.data_subnet.id
-  nat_gateway_id = azurerm_nat_gateway.nat_gateway.id
-}
-
 resource "azurerm_public_ip" "nat_gateway_pip" {
   count               = (var.HubEnabled && var.FwEnabled) ? 0 : 1
   name                = "${var.EnvName}-nat-gateway-pip"
@@ -808,10 +790,28 @@ resource "azurerm_public_ip" "nat_gateway_pip" {
   sku                 = "Standard"
 }
 
+resource "azurerm_subnet_nat_gateway_association" "web_subnet_nat_association" {
+  count          = (var.HubEnabled && var.FwEnabled) ? 0 : 1
+  subnet_id      = azurerm_subnet.web_subnet.id
+  nat_gateway_id = azurerm_nat_gateway.nat_gateway[0].id
+}
+
+resource "azurerm_subnet_nat_gateway_association" "app_subnet_nat_association" {
+  count          = (var.HubEnabled && var.FwEnabled) ? 0 : 1
+  subnet_id      = azurerm_subnet.app_subnet.id
+  nat_gateway_id = azurerm_nat_gateway.nat_gateway[0].id
+}
+
+resource "azurerm_subnet_nat_gateway_association" "data_subnet_nat_association" {
+  count          = (var.HubEnabled && var.FwEnabled) ? 0 : 1
+  subnet_id      = azurerm_subnet.data_subnet.id
+  nat_gateway_id = azurerm_nat_gateway.nat_gateway[0].id
+}
+
 resource "azurerm_nat_gateway_public_ip_association" "nat_gateway_pip_association" {
   count                = (var.HubEnabled && var.FwEnabled) ? 0 : 1
-  nat_gateway_id       = azurerm_nat_gateway.nat_gateway.id
-  public_ip_address_id = azurerm_public_ip.nat_gateway_pip.id
+  nat_gateway_id       = azurerm_nat_gateway.nat_gateway[0].id
+  public_ip_address_id = azurerm_public_ip.nat_gateway_pip[0].id
 }
 
 #=========#
