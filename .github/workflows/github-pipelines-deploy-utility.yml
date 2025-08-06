@@ -17,8 +17,8 @@ on:
         required: true
         type: choice
         options:
-          - 'prod'
           - 'dev'
+          - 'prod'
           - 'hub'
       location:
         description: 'Target location (not required) - applicable for quota usage script'
