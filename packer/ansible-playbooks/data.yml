@@ -109,3 +109,20 @@
       file:
         path: /opt/sls-data
         state: directory
+
+    #############################################################################
+    # Install network and system utilities
+    #############################################################################
+    - name: Install network and system utilities
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - dnsutils          # Includes dig, nslookup, host
+        - util-linux        # System utilities including various tools
+        - net-tools         # Includes netstat, ifconfig, arp, route
+        - traceroute        # Network path tracing utility
+        - curl              # Data transfer tool
+        - tcpdump           # Network packet analyzer
+        - wget              # File download utility
