@@ -49,6 +49,7 @@ Best for application testing, self-contained environments or when centralized sh
 ```
 Azure-Lab-Builder/
 ├── README.md
+├── LICENSE                              # MIT License file
 ├── packer/
 │   ├── build.pkr.hcl                    # Packer build configuration
 │   └── ansible-playbooks/
@@ -57,6 +58,10 @@ Azure-Lab-Builder/
 │       └── web.yml                      # Nginx web server configuration
 ├── scripts/
 │   ├── check-job-status.sh              # CI/CD job validation script
+│   ├── restart-vm-vmss-per-sub.ps1      # VM/VMSS restart utility across subscriptions
+│   ├── sub-cost-estimation.ps1          # Azure subscription cost analysis
+│   ├── sub-quota-usage.ps1              # Subscription quota monitoring and reporting
+│   ├── ubuntu-linux-vm-vmss-update.ps1  # Ubuntu VM/VMSS update automation
 │   └── verify-architecture-selection.sh # Architecture deployment validation
 ├── terraform/
 │   ├── hub/
@@ -72,10 +77,9 @@ Azure-Lab-Builder/
         ├── github-pipelines-build.yml              # General build pipeline
         ├── github-pipelines-build-packer.yml       # Packer image build pipeline
         ├── github-pipelines-deploy-hub+spoke.yml   # Hub-and-spoke deployment
-        └── github-pipelines-deploy-stand+alone.yml # Stand-alone deployment
+        ├── github-pipelines-deploy-stand+alone.yml # Stand-alone deployment
+        └── github-pipelines-deploy-utility.yml     # Utility scripts execution pipeline
 ```
-
----
 
 ## Prerequisites
 

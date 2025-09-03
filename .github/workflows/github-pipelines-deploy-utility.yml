@@ -9,7 +9,6 @@ on:
         type: choice
         options:
           - 'restart-vm-vmss-per-sub.ps1'
-          - 'ms-windows-vm-vmss-update.ps1'
           - 'sub-cost-estimation.ps1'
           - 'sub-quota-usage.ps1'
           - 'ubuntu-linux-vm-vmss-update.ps1'
@@ -18,10 +17,14 @@ on:
         required: true
         type: choice
         options:
-          - 'prod'
           - 'dev'
+          - 'prod'
           - 'hub'
-
+      location:
+        description: 'Target location (not required) - applicable for quota usage script'
+        required: false
+        default: 'eastus2'
+        type: string
 env:
   AZURE_PS_SCRIPT_PATH: 'scripts'
 
@@ -32,29 +35,40 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-      - name: Map Environment to Subscription ID
-        run: |
-          $env = "${{ github.event.inputs.environment }}"
-          if ($env -eq "prod") {
-            echo "SUB_ID=${{ secrets.PROD_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
-          } elseif ($env -eq "dev") {
-            echo "SUB_ID=${{ secrets.DEV_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
-          } elseif ($env -eq "hub") {
-            echo "SUB_ID=${{ secrets.HUB_SUBSCRIPTION_ID }}" >> $GITHUB_ENV
-          } else {
-            Write-Error "Unknown environment: $env"
-            exit 1
-          }
-      - name: Run selected script
+      - name: Set secret names
+        id: set_secrets
         shell: pwsh
         run: |
-          $script = "${{ env.AZURE_PS_SCRIPT_PATH }}\restart-vm-vmss-per-sub.ps1.ps1"
+          "AZ_SP_SECRET_NAME=AZ_SP_${{ github.event.inputs.environment }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
+          enable-AzPSSession: true
+      - name: Map Environment to Subscription ID
+        shell: pwsh
+        run: |
+          $envName = "${{ github.event.inputs.environment }}"
+          if ($envName -eq "prod") {
+            "SUB_ID=${{ secrets.PROD_SUBSCRIPTION_ID }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          } elseif ($envName -eq "dev") {
+            "SUB_ID=${{ secrets.DEV_SUBSCRIPTION_ID }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          } elseif ($envName -eq "hub") {
+            "SUB_ID=${{ secrets.HUB_SUBSCRIPTION_ID }}" | Out-File -FilePath $env:GITHUB_ENV -Append
+          } else {
+            Write-Error "Unknown environment: $envName"
+            exit 1
+          }
+      - name: Run selected script - ${{ github.event.inputs.script_name }}
+        shell: pwsh
+        run: |
+          $script = "${{ env.AZURE_PS_SCRIPT_PATH }}\${{ github.event.inputs.script_name }}"
           if (-not "${{ env.SUB_ID }}") {
             Write-Error "Subscription ID not found for environment"
             exit 1
           }
-          pwsh -File $script -SubscriptionId "${{ env.SUB_ID }}"
+          if ("${{ github.event.inputs.script_name }}" -eq "sub-quota-usage.ps1") {
+            & $script -SubscriptionId "${{ env.SUB_ID }}" -Location "${{ github.event.inputs.location }}"
+          } else {
+            & $script -SubscriptionId "${{ env.SUB_ID }}"
+          }

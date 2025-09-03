@@ -373,6 +373,7 @@ resource "azurerm_network_security_group" "web_nsg" {
   resource_group_name = azurerm_resource_group.web_rg.name
   location            = azurerm_resource_group.web_rg.location
 
+  ### Inbound Rules ###
   dynamic "security_rule" {
     for_each = var.HubEnabled ? [1] : []
     content {
@@ -471,6 +472,18 @@ resource "azurerm_network_security_group" "web_nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = var.WebSubnetPrefix[0]
   }
+  ### Outbound Rules ###
+  security_rule {
+    name                       = "Allow-Internet-Outbound"
+    priority                   = 1000
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.WebSubnetPrefix[0]
+    destination_address_prefix = "Internet"
+  }
 }
 
 resource "azurerm_network_security_group" "app_nsg" {
@@ -478,6 +491,7 @@ resource "azurerm_network_security_group" "app_nsg" {
   resource_group_name = azurerm_resource_group.app_rg.name
   location            = azurerm_resource_group.app_rg.location
 
+  ### Inbound Rules ###
   dynamic "security_rule" {
     for_each = var.HubEnabled ? [1] : []
     content {
@@ -576,7 +590,18 @@ resource "azurerm_network_security_group" "app_nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = var.AppSubnetPrefix[0]
   }
-
+  ### Outbound Rules ###
+  security_rule {
+    name                       = "Allow-Internet-Outbound"
+    priority                   = 1000
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.AppSubnetPrefix[0]
+    destination_address_prefix = "Internet"
+  }
 }
 
 resource "azurerm_network_security_group" "data_nsg" {
@@ -584,6 +609,7 @@ resource "azurerm_network_security_group" "data_nsg" {
   resource_group_name = azurerm_resource_group.db_rg.name
   location            = azurerm_resource_group.db_rg.location
 
+  ### Inbound Rules ###
   dynamic "security_rule" {
     for_each = var.HubEnabled ? [1] : []
     content {
@@ -670,6 +696,18 @@ resource "azurerm_network_security_group" "data_nsg" {
     source_address_prefix      = "*"
     destination_address_prefix = var.DataSubnetPrefix[0]
   }
+  ### Outbound Rules ###
+  security_rule {
+    name                       = "Allow-Internet-Outbound"
+    priority                   = 1000
+    direction                  = "Outbound"
+    access                     = "Allow"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = var.DataSubnetPrefix[0]
+    destination_address_prefix = "Internet"
+  }
 }
 
 resource "azurerm_subnet_network_security_group_association" "web_nsg_association" {
@@ -731,6 +769,49 @@ resource "azurerm_subnet_route_table_association" "data_route_table_association"
   count          = (var.HubEnabled && var.FwEnabled) ? 1 : 0
   subnet_id      = azurerm_subnet.data_subnet.id
   route_table_id = azurerm_route_table.fw_route_table[0].id
+}
+
+### NAT Gateway ###
+
+resource "azurerm_nat_gateway" "nat_gateway" {
+  count               = (var.HubEnabled && var.FwEnabled) ? 0 : 1
+  name                = "${var.EnvName}-nat-gateway"
+  location            = azurerm_resource_group.network_rg.location
+  resource_group_name = azurerm_resource_group.network_rg.name
+  sku_name            = "Standard"
+}
+
+resource "azurerm_public_ip" "nat_gateway_pip" {
+  count               = (var.HubEnabled && var.FwEnabled) ? 0 : 1
+  name                = "${var.EnvName}-nat-gateway-pip"
+  location            = azurerm_resource_group.network_rg.location
+  resource_group_name = azurerm_resource_group.network_rg.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_subnet_nat_gateway_association" "web_subnet_nat_association" {
+  count          = (var.HubEnabled && var.FwEnabled) ? 0 : 1
+  subnet_id      = azurerm_subnet.web_subnet.id
+  nat_gateway_id = azurerm_nat_gateway.nat_gateway[0].id
+}
+
+resource "azurerm_subnet_nat_gateway_association" "app_subnet_nat_association" {
+  count          = (var.HubEnabled && var.FwEnabled) ? 0 : 1
+  subnet_id      = azurerm_subnet.app_subnet.id
+  nat_gateway_id = azurerm_nat_gateway.nat_gateway[0].id
+}
+
+resource "azurerm_subnet_nat_gateway_association" "data_subnet_nat_association" {
+  count          = (var.HubEnabled && var.FwEnabled) ? 0 : 1
+  subnet_id      = azurerm_subnet.data_subnet.id
+  nat_gateway_id = azurerm_nat_gateway.nat_gateway[0].id
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "nat_gateway_pip_association" {
+  count                = (var.HubEnabled && var.FwEnabled) ? 0 : 1
+  nat_gateway_id       = azurerm_nat_gateway.nat_gateway[0].id
+  public_ip_address_id = azurerm_public_ip.nat_gateway_pip[0].id
 }
 
 #=========#
