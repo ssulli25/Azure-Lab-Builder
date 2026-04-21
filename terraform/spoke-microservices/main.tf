@@ -605,7 +605,7 @@ resource "azurerm_monitor_diagnostic_setting" "aks_diag" {
   enabled_log { category = "kube-audit-admin" }
   enabled_log { category = "guard" }
 
-  metric { category = "AllMetrics" }
+  enabled_metric { category = "AllMetrics" }
 }
 
 resource "azurerm_monitor_diagnostic_setting" "sql_diag" {
@@ -617,7 +617,7 @@ resource "azurerm_monitor_diagnostic_setting" "sql_diag" {
   enabled_log { category = "Errors" }
   enabled_log { category = "QueryStoreRuntimeStatistics" }
 
-  metric { category = "AllMetrics" }
+  enabled_metric { category = "AllMetrics" }
 }
 
 resource "azurerm_monitor_diagnostic_setting" "acr_diag" {
@@ -628,7 +628,7 @@ resource "azurerm_monitor_diagnostic_setting" "acr_diag" {
   enabled_log { category = "ContainerRegistryRepositoryEvents" }
   enabled_log { category = "ContainerRegistryLoginEvents" }
 
-  metric { category = "AllMetrics" }
+  enabled_metric { category = "AllMetrics" }
 }
 
 resource "azurerm_monitor_diagnostic_setting" "kv_diag" {
@@ -639,5 +639,5 @@ resource "azurerm_monitor_diagnostic_setting" "kv_diag" {
   enabled_log { category = "AuditEvent" }
   enabled_log { category = "AzurePolicyEvaluationDetails" }
 
-  metric { category = "AllMetrics" }
+  enabled_metric { category = "AllMetrics" }
 }
