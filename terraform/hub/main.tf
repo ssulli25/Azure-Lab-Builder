@@ -140,6 +140,7 @@ resource "azurerm_public_ip" "vng_pip" {
   location            = azurerm_resource_group.network_rg.location
   allocation_method   = "Static"
   sku                 = "Standard"
+  zones               = ["1", "2", "3"]
 }
 
 ### Bastion Host ###
@@ -275,6 +276,10 @@ resource "azurerm_public_ip" "firewall_pip" {
   location            = azurerm_resource_group.network_rg.location
   allocation_method   = "Static"
   sku                 = "Standard"
+
+  lifecycle {
+    ignore_changes = [ip_tags]
+  }
 }
 
 resource "azurerm_firewall_policy" "firewall_policy" {
