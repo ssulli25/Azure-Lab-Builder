@@ -9,8 +9,8 @@ on:
       - 'tags/*'
 
 env:
-  majorVersion: '25'
-  minorVersion: '08'
+  majorVersion: '26'
+  minorVersion: '04'
 
 # Build pipeline jobs
 jobs:
@@ -72,8 +72,14 @@ jobs:
           ENDTAG=""
           if [[ "$BRANCH_NAME" == "main" ]]; then
             ENDTAG=""
+          elif [[ "$BRANCH_NAME" =~ ^release/.*-ai$ ]]; then
+            ENDTAG="-release-ai"
           elif [[ "$BRANCH_NAME" =~ ^release/ ]]; then
             ENDTAG="-release"
+          elif [[ "$BRANCH_NAME" =~ ^feature/.*-ai$ ]]; then
+            ENDTAG="-feature-ai"
+          elif [[ "$BRANCH_NAME" =~ ^feature/ ]]; then
+            ENDTAG="-feature"
           else
             ENDTAG="-$BRANCH_NAME"
           fi
