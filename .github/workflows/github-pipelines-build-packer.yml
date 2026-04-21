@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Make scripts executable
         run: chmod +x ./scripts/verify-architecture-selection.sh
       - name: Verify Deployment of Packer Architecture
@@ -62,13 +62,13 @@ jobs:
           echo "CONTAINER_SECRET_NAME=sls-packer-${{ inputs.image-build }}-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           echo "PKVARS_SECRET_NAME=${{ inputs.image-build }}-${{ github.event.inputs.environment }}.auto.pkrvars.hcl" >> $GITHUB_ENV
       - name: Login to Azure
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Packer
-        uses: hashicorp/setup-packer@main
+        uses: hashicorp/setup-packer@v3
         id: setup
         with:
           version: ${{ env.PACKER_VERSION }}

@@ -75,7 +75,7 @@ jobs:
     if: ${{ github.event.inputs.terraform_action == 'apply' || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'false') }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Make scripts executable
         run: chmod +x ./scripts/verify-architecture-selection.sh
       - name: Verify Deployment of Hub & Spoke Architecture
@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Set secret names
         id: set_secrets
         run: |
@@ -95,11 +95,11 @@ jobs:
           echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
           echo "CONTAINER_SECRET_NAME=${{ secrets.HUB_CONTAINER_NAME }}" >> $GITHUB_ENV
       - name: Login to Azure - Hub
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
@@ -166,7 +166,7 @@ jobs:
     if: ${{ github.event.inputs.terraform_action == 'apply' || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'false') }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Make scripts executable
         run: chmod +x ./scripts/check-job-status.sh
       - name: Check Previous Job Status
@@ -179,11 +179,11 @@ jobs:
           echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
           echo "CONTAINER_SECRET_NAME=${{ secrets.HUB_CONTAINER_NAME }}" >> $GITHUB_ENV
       - name: Login to Azure - Hub
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
@@ -239,7 +239,7 @@ jobs:
     if: always()
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Make scripts executable
         run: chmod +x ./scripts/check-job-status.sh
       - name: Check Previous Job Status
@@ -253,11 +253,11 @@ jobs:
           echo "CONTAINER_SECRET_NAME=sls-terraform-state-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           echo "TFVARS_SECRET_NAME=${{ github.event.inputs.environment }}.auto.tfvars" >> $GITHUB_ENV
       - name: Login to Azure
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
@@ -324,7 +324,7 @@ jobs:
     if: always()
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Make scripts executable
         run: chmod +x ./scripts/check-job-status.sh
       - name: Check Previous Job Status
@@ -338,11 +338,11 @@ jobs:
           echo "CONTAINER_SECRET_NAME=sls-terraform-state-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           echo "TFVARS_SECRET_NAME=${{ github.event.inputs.environment }}.auto.tfvars" >> $GITHUB_ENV
       - name: Login to Azure
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
