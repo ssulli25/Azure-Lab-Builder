@@ -1,0 +1,45 @@
+# Name of pipeline
+name: config.sls.aks
+#
+# PLACEHOLDER — In-cluster baseline configuration for AKS microservices spoke.
+#
+# Intent (deferred to a future change):
+#   - Run after `deploy.sls.hub+spoke` / `deploy.sls.stand+alone` provisions an
+#     AKS cluster from `terraform/spoke-microservices/`.
+#   - Authenticate to AKS via Entra ID + Azure RBAC (no admin kubeconfig — AKS
+#     cluster has `local_account_disabled = true`).
+#   - Apply baseline cluster config such as:
+#       * Namespaces (e.g. `platform`, `apps`, `ingress`)
+#       * cert-manager + ClusterIssuer (Let's Encrypt or internal CA)
+#       * AGIC ingress class is already installed by the AKS add-on; this
+#         workflow would create default Ingress/IngressClass resources, WAF
+#         policy bindings, and any required Application Gateway listeners.
+#       * External DNS (optional)
+#       * Workload Identity ServiceAccount(s) federated to the user-assigned
+#         managed identity created by Terraform (`<env>-workload-uai`).
+#       * Prometheus / Grafana add-ons or Azure Monitor managed Prometheus.
+#       * Pod Security / Azure Policy assignments.
+#
+# Trigger to run pipeline (manual only for now)
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Spoke environment to configure (e.g. dev, prod)'
+        required: true
+        type: choice
+        options:
+          - 'dev'
+          - 'prod'
+        default: 'dev'
+
+jobs:
+  Placeholder:
+    name: Placeholder - implementation pending
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notice
+        run: |
+          echo "This workflow is a placeholder for AKS in-cluster baseline configuration."
+          echo "Implementation is intentionally deferred. See file header for intent."
+          exit 0
