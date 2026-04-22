@@ -96,23 +96,63 @@ Azure-Lab-Builder/
 
 ### Tfvars convention
 
-Per-environment Terraform variables are stored in a secure Azure Storage container (`sls-terraform-state-<env>` for hub+spoke, `sls-terraform-state-sa-<env>` for stand-alone) and downloaded at deploy time. Filenames now include the architecture:
+Per-environment Terraform variables are stored in a secure Azure Storage container (`sls-terraform-state-<env>` for hub+spoke, `sls-terraform-state-sa-<env>` for stand-alone) and downloaded at deploy time. A single shared file per env covers both architectures:
 
 | Use | Filename |
 |---|---|
 | Hub | `hub.auto.tfvars` |
-| 3-tier spoke (per env) | `<env>-3tier.auto.tfvars` |
-| Microservices spoke (per env) | `<env>-microservices.auto.tfvars` |
+| Spoke (per env, both architectures) | `<env>.auto.tfvars` |
 
-> **Migration note:** earlier versions used `<env>.auto.tfvars` (no architecture suffix) for the 3-tier spoke. Existing files in each `sls-terraform-state-<env>` (and `sls-terraform-state-sa-<env>`) container must be renamed to `<env>-3tier.auto.tfvars` before the next 3-tier deploy run.
+Organize the file with comment headers so you can see at a glance which keys belong to which architecture:
+
+```hcl
+# === Shared ===
+Region            = "eastus"
+VnetAddressSpace  = ["10.20.0.0/16"]
+
+# === 3-tier ===
+WebSubnetPrefix   = ["10.20.0.0/24"]
+AppSubnetPrefix   = ["10.20.1.0/24"]
+DataSubnetPrefix  = ["10.20.2.0/24"]
+# (plus any other 3-tier-specific keys)
+
+# === Microservices ===
+AksSystemSubnetPrefix       = ["10.20.0.0/24"]
+AksUserSubnetPrefix         = ["10.20.1.0/24"]
+AppGwSubnetPrefix           = ["10.20.2.0/24"]
+PrivateEndpointSubnetPrefix = ["10.20.3.0/24"]
+SqlAadAdminLogin            = "sg-azuresql-admins"
+SqlAadAdminObjectId         = "00000000-0000-0000-0000-000000000000"
+# (optional overrides: AksKubernetesVersion, node sizes, AcrSku, SqlDatabaseSku, etc.)
+```
+
+> When you run a given architecture, Terraform will emit a harmless `Warning: Value for undeclared variable` for each key that belongs to the OTHER architecture. This is cosmetic — `auto.tfvars` undeclared-variable warnings do not fail the run.
+>
+> The two architectures cannot coexist in the same env (the spoke VNet name `<EnvName>-<Region>-vnet` would collide). Deploy them into separate envs, or destroy one before standing up the other.
 
 ### Terraform state keys
 
 | Use | State key |
 |---|---|
 | Hub | `hub.tfstate` |
-| 3-tier spoke (per env) | `<env>.tfstate` (unchanged for backward compatibility) |
+| 3-tier spoke (per env) | `<env>-3tier.tfstate` |
 | Microservices spoke (per env) | `<env>-microservices.tfstate` |
+
+> **Backend migration note:** earlier versions used `<env>.tfstate` (no architecture suffix) for the 3-tier spoke. Before your next 3-tier deploy, in each `sls-terraform-state-<env>` and `sls-terraform-state-sa-<env>` container either:
+>
+> - **Rename** the existing blob `<env>.tfstate` → `<env>-3tier.tfstate` (Azure blobs cannot be renamed in place — copy then delete):
+>
+>   ```bash
+>   az storage blob copy start \
+>     --source-container <container> --source-blob <env>.tfstate \
+>     --destination-container <container> --destination-blob <env>-3tier.tfstate \
+>     --account-name <storage-account> --auth-mode login
+>   az storage blob delete \
+>     --container-name <container> --name <env>.tfstate \
+>     --account-name <storage-account> --auth-mode login
+>   ```
+>
+> - **OR start fresh** if you have no live 3-tier resources to track — the next apply will create a new `<env>-3tier.tfstate`, and you can delete the orphan `<env>.tfstate`.
 
 ## Prerequisites
 

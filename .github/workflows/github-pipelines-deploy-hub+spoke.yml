@@ -263,13 +263,9 @@ jobs:
           echo "SUBSCRIPTION_ID_SECRET_NAME=${{ github.event.inputs.environment }}_SUBSCRIPTION_ID" >> $GITHUB_ENV
           echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
           echo "CONTAINER_SECRET_NAME=sls-terraform-state-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
-          echo "TFVARS_SECRET_NAME=${{ github.event.inputs.environment }}-${{ github.event.inputs.architecture_type }}.auto.tfvars" >> $GITHUB_ENV
+          echo "TFVARS_SECRET_NAME=${{ github.event.inputs.environment }}.auto.tfvars" >> $GITHUB_ENV
           echo "SPOKE_DIR=spoke-${{ github.event.inputs.architecture_type }}" >> $GITHUB_ENV
-          if [ "${{ github.event.inputs.architecture_type }}" = "3tier" ]; then
-            echo "STATE_KEY=${{ github.event.inputs.environment }}.tfstate" >> $GITHUB_ENV
-          else
-            echo "STATE_KEY=${{ github.event.inputs.environment }}-${{ github.event.inputs.architecture_type }}.tfstate" >> $GITHUB_ENV
-          fi
+          echo "STATE_KEY=${{ github.event.inputs.environment }}-${{ github.event.inputs.architecture_type }}.tfstate" >> $GITHUB_ENV
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -354,13 +350,9 @@ jobs:
           echo "SUBSCRIPTION_ID_SECRET_NAME=${{ github.event.inputs.environment }}_SUBSCRIPTION_ID" >> $GITHUB_ENV
           echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
           echo "CONTAINER_SECRET_NAME=sls-terraform-state-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
-          echo "TFVARS_SECRET_NAME=${{ github.event.inputs.environment }}-${{ github.event.inputs.architecture_type }}.auto.tfvars" >> $GITHUB_ENV
+          echo "TFVARS_SECRET_NAME=${{ github.event.inputs.environment }}.auto.tfvars" >> $GITHUB_ENV
           echo "SPOKE_DIR=spoke-${{ github.event.inputs.architecture_type }}" >> $GITHUB_ENV
-          if [ "${{ github.event.inputs.architecture_type }}" = "3tier" ]; then
-            echo "STATE_KEY=${{ github.event.inputs.environment }}.tfstate" >> $GITHUB_ENV
-          else
-            echo "STATE_KEY=${{ github.event.inputs.environment }}-${{ github.event.inputs.architecture_type }}.tfstate" >> $GITHUB_ENV
-          fi
+          echo "STATE_KEY=${{ github.event.inputs.environment }}-${{ github.event.inputs.architecture_type }}.tfstate" >> $GITHUB_ENV
       - name: Login to Azure
         uses: azure/login@v2
         with:
