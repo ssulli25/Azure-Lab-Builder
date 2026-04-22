@@ -506,7 +506,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
     vm_size                      = var.AksSystemNodeVmSize
     vnet_subnet_id               = azurerm_subnet.aks_system_subnet.id
     node_count                   = 1
-    only_critical_addons_enabled = true
     # orchestrator_version omitted to inherit kubernetes_version from the cluster
     upgrade_settings {
       max_surge = "10%"
