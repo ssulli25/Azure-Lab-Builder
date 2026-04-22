@@ -43,62 +43,51 @@ variable "PrivateEndpointSubnetPrefix" {
 ##### AKS Variables #####
 
 variable "AksKubernetesVersion" {
-  type    = string
-  default = null
+  type = string
 }
 
 variable "AksSystemNodeVmSize" {
-  type    = string
-  default = "Standard_D2s_v5"
+  type = string
 }
 
 variable "AksUserNodeVmSize" {
-  type    = string
-  default = "Standard_D4s_v5"
+  type = string
 }
 
 variable "AksUserNodeMin" {
-  type    = number
-  default = 1
+  type = number
 }
 
 variable "AksUserNodeMax" {
-  type    = number
-  default = 3
+  type = number
 }
 
 variable "AksPodCidr" {
   type        = string
   description = "Overlay pod CIDR; must NOT overlap any VNet/subnet/peered network."
-  default     = "100.64.0.0/16"
 }
 
 variable "AksServiceCidr" {
-  type    = string
-  default = "172.16.0.0/16"
+  type = string
 }
 
 variable "AksDnsServiceIp" {
-  type    = string
-  default = "172.16.0.10"
+  type = string
 }
 
 ##### Container Registry / Data / Security Variables #####
 
 variable "AcrSku" {
-  type    = string
-  default = "Premium"
+  type = string
 }
 
 variable "SqlDatabaseSku" {
-  type    = string
-  default = "GP_S_Gen5_2"
+  type = string
 }
 
 variable "SqlAdminLogin" {
   description = "SQL Server administrator login (username)"
   type        = string
-  default     = "sqladmin"
 }
 
 ##### Sensitive Variables #####

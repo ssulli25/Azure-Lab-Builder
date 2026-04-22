@@ -122,7 +122,16 @@ AksUserSubnetPrefix         = ["10.20.1.0/24"]
 AppGwSubnetPrefix           = ["10.20.2.0/24"]
 PrivateEndpointSubnetPrefix = ["10.20.3.0/24"]
 SqlAdminLogin               = "sqladmin"
-# (optional overrides: AksKubernetesVersion, node sizes, AcrSku, SqlDatabaseSku, etc.)
+AksKubernetesVersion        = "1.30.4"
+AksSystemNodeVmSize         = "Standard_D2s_v5"
+AksUserNodeVmSize           = "Standard_D4s_v5"
+AksUserNodeMin              = 1
+AksUserNodeMax              = 3
+AksPodCidr                  = "100.64.0.0/16"     # MUST NOT overlap any peered network
+AksServiceCidr              = "172.16.0.0/16"
+AksDnsServiceIp             = "172.16.0.10"
+AcrSku                      = "Premium"
+SqlDatabaseSku              = "GP_S_Gen5_2"
 ```
 
 > When you run a given architecture, Terraform will emit a harmless `Warning: Value for undeclared variable` for each key that belongs to the OTHER architecture. This is cosmetic — `auto.tfvars` undeclared-variable warnings do not fail the run.
