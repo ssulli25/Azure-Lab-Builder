@@ -95,14 +95,10 @@ variable "SqlDatabaseSku" {
   default = "GP_S_Gen5_2"
 }
 
-variable "SqlAadAdminLogin" {
-  description = "Display name of the Entra ID user/group to assign as Azure SQL AAD admin"
+variable "SqlAdminLogin" {
+  description = "SQL Server administrator login (username)"
   type        = string
-}
-
-variable "SqlAadAdminObjectId" {
-  description = "Object ID of the Entra ID user/group to assign as Azure SQL AAD admin"
-  type        = string
+  default     = "sqladmin"
 }
 
 ##### Sensitive Variables #####
@@ -119,10 +115,8 @@ variable "HubSubscriptionId" {
   sensitive   = true
 }
 
-# Accepted for cross-architecture workflow compatibility (not used by AKS/SQL stack).
 variable "AdminPassword" {
-  description = "Unused in microservices spoke; kept for workflow var-passing parity with 3-tier."
+  description = "Password used as the Azure SQL Server administrator_login_password in the microservices spoke."
   type        = string
   sensitive   = true
-  default     = ""
 }

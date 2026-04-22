@@ -372,11 +372,8 @@ resource "azurerm_mssql_server" "sql" {
   minimum_tls_version           = "1.2"
   public_network_access_enabled = false
 
-  azuread_administrator {
-    login_username              = var.SqlAadAdminLogin
-    object_id                   = var.SqlAadAdminObjectId
-    azuread_authentication_only = true
-  }
+  administrator_login          = var.SqlAdminLogin
+  administrator_login_password = var.AdminPassword
 }
 
 resource "azurerm_mssql_database" "app_db" {

@@ -121,8 +121,7 @@ AksSystemSubnetPrefix       = ["10.20.0.0/24"]
 AksUserSubnetPrefix         = ["10.20.1.0/24"]
 AppGwSubnetPrefix           = ["10.20.2.0/24"]
 PrivateEndpointSubnetPrefix = ["10.20.3.0/24"]
-SqlAadAdminLogin            = "sg-azuresql-admins"
-SqlAadAdminObjectId         = "00000000-0000-0000-0000-000000000000"
+SqlAdminLogin               = "sqladmin"
 # (optional overrides: AksKubernetesVersion, node sizes, AcrSku, SqlDatabaseSku, etc.)
 ```
 
