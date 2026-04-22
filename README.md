@@ -111,10 +111,21 @@ Region            = "eastus"
 VnetAddressSpace  = ["10.20.0.0/16"]
 
 # === 3-tier ===
-WebSubnetPrefix   = ["10.20.0.0/24"]
-AppSubnetPrefix   = ["10.20.1.0/24"]
-DataSubnetPrefix  = ["10.20.2.0/24"]
-# (plus any other 3-tier-specific keys)
+WebSubnetPrefix    = ["10.20.0.0/24"]
+AppSubnetPrefix    = ["10.20.1.0/24"]
+DataSubnetPrefix   = ["10.20.2.0/24"]
+AppGwSubnetPrefix  = ["10.20.3.0/24"]
+AppLbSubnetPrefix  = ["10.20.4.0/24"]
+DataLbSubnetPrefix = ["10.20.5.0/24"]
+WebVmssSize        = "Standard_D2s_v5"
+AppVmssSize        = "Standard_D2s_v5"
+DbVmSize           = "Standard_D2s_v5"
+WebInstanceCount   = 2
+AppInstanceCount   = 2
+WebImageId         = "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Compute/galleries/<gallery>/images/<def>/versions/<ver>"
+AppImageId         = "..."   # same Shared Image Gallery resource ID pattern as WebImageId
+DataImageId        = "..."   # same Shared Image Gallery resource ID pattern as WebImageId
+AdminUsername      = "labadmin"
 
 # === Microservices ===
 AksSystemSubnetPrefix       = ["10.20.0.0/24"]
@@ -136,28 +147,6 @@ SqlDatabaseSku              = "GP_S_Gen5_2"
 > When you run a given architecture, Terraform will emit a harmless `Warning: Value for undeclared variable` for each key that belongs to the OTHER architecture. This is cosmetic — `auto.tfvars` undeclared-variable warnings do not fail the run.
 >
 > The two architectures cannot coexist in the same env (the spoke VNet name `<EnvName>-<Region>-vnet` would collide). Deploy them into separate envs, or destroy one before standing up the other.
-
-### AKS Kubernetes version (repository Actions Variable)
-
-`AksKubernetesVersion` is **not** stored in tfvars. It is sourced from a repository-level
-GitHub Actions **Variable** so the version can be rotated centrally without touching any
-tfvars blob.
-
-| Setting | Value |
-|---|---|
-| Type | Repository Variable (Settings → Secrets and variables → Actions → **Variables** tab) |
-| Name | `AKS_KUBERNETES_VERSION` |
-| Current value | `1.35` |
-| Used by | Microservices spoke (`terraform/spoke-microservices`) — both `deploy-hub+spoke.yml` and `deploy-stand+alone.yml` |
-| Mechanism | Injected as `TF_VAR_AksKubernetesVersion` env var on the spoke deploy steps |
-
-> **Precedence note:** Terraform's `*.auto.tfvars` overrides `TF_VAR_*` env vars. Do **not**
-> add `AksKubernetesVersion` back into `<env>.auto.tfvars` — if you do, the tfvars value
-> will silently win and the repo Variable will be ignored.
->
-> The 3-tier spoke does not declare `AksKubernetesVersion`; Terraform silently ignores
-> `TF_VAR_*` env vars whose variable isn't declared in the active module, so the same
-> workflow works for both architectures with no conditional logic.
 
 ### Terraform state keys
 
