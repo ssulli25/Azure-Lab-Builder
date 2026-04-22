@@ -166,6 +166,7 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          TF_VAR_AksKubernetesVersion: ${{ vars.AKS_KUBERNETES_VERSION }}
           HUB_VNET_CIDR: ${{ secrets.HUB_VNET_CIDR }}
           BASTION_SUBNET_CIDR: ${{ secrets.BASTION_SUBNET_CIDR }}
           GATEWAY_SUBNET_CIDR: ${{ secrets.GATEWAY_SUBNET_CIDR }}
@@ -239,6 +240,7 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          TF_VAR_AksKubernetesVersion: ${{ vars.AKS_KUBERNETES_VERSION }}
       - name: Set output
         id: deployment_output
         run: echo "::set-output name=run::true"
@@ -330,6 +332,7 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          TF_VAR_AksKubernetesVersion: ${{ vars.AKS_KUBERNETES_VERSION }}
 
   App_Deployment:
     name: Deployment - ${{ inputs.environment }} environment
@@ -417,4 +420,5 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          TF_VAR_AksKubernetesVersion: ${{ vars.AKS_KUBERNETES_VERSION }}
 

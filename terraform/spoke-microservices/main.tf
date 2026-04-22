@@ -377,11 +377,15 @@ resource "azurerm_mssql_server" "sql" {
 }
 
 resource "azurerm_mssql_database" "app_db" {
-  name        = "appdb"
-  server_id   = azurerm_mssql_server.sql.id
-  sku_name    = var.SqlDatabaseSku
-  collation   = "SQL_Latin1_General_CP1_CI_AS"
+  name           = "appdb"
+  server_id      = azurerm_mssql_server.sql.id
+  sku_name       = var.SqlDatabaseSku
+  collation      = "SQL_Latin1_General_CP1_CI_AS"
   zone_redundant = false
+
+  # Serverless-only settings (GP_S_*). min_capacity must be >= 0.5; 0 is rejected.
+  min_capacity                = startswith(var.SqlDatabaseSku, "GP_S_") ? 1 : null
+  auto_pause_delay_in_minutes = startswith(var.SqlDatabaseSku, "GP_S_") ? 60 : null
 }
 
 resource "azurerm_private_endpoint" "sql_pe" {
@@ -498,12 +502,12 @@ resource "azurerm_kubernetes_cluster" "aks" {
   node_resource_group       = "aks-nodes-${var.EnvName}-rg"
 
   default_node_pool {
-    name                 = "system"
-    vm_size              = var.AksSystemNodeVmSize
-    vnet_subnet_id       = azurerm_subnet.aks_system_subnet.id
-    node_count           = 1
-    orchestrator_version = var.AksKubernetesVersion
+    name                         = "system"
+    vm_size                      = var.AksSystemNodeVmSize
+    vnet_subnet_id               = azurerm_subnet.aks_system_subnet.id
+    node_count                   = 1
     only_critical_addons_enabled = true
+    # orchestrator_version omitted to inherit kubernetes_version from the cluster
     upgrade_settings {
       max_surge = "10%"
     }
@@ -556,8 +560,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "user" {
   auto_scaling_enabled  = true
   min_count             = var.AksUserNodeMin
   max_count             = var.AksUserNodeMax
-  orchestrator_version  = var.AksKubernetesVersion
   mode                  = "User"
+  # orchestrator_version omitted to inherit kubernetes_version from the cluster
 
   upgrade_settings {
     max_surge = "33%"
