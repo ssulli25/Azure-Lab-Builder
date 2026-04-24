@@ -81,10 +81,10 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_subnet" "mgmt" {
-  name                            = "mgmt-subnet"
-  resource_group_name             = azurerm_resource_group.network_rg.name
-  virtual_network_name            = azurerm_virtual_network.vnet.name
-  address_prefixes                = var.MgmtSubnetPrefix
+  name                 = "mgmt-subnet"
+  resource_group_name  = azurerm_resource_group.network_rg.name
+  virtual_network_name = azurerm_virtual_network.vnet.name
+  address_prefixes     = var.MgmtSubnetPrefix
 }
 
 resource "azurerm_subnet" "gateway" {
@@ -106,13 +106,6 @@ resource "azurerm_subnet" "az_firewall" {
   resource_group_name  = azurerm_resource_group.network_rg.name
   virtual_network_name = azurerm_virtual_network.vnet.name
   address_prefixes     = var.AzFirewallSubnetPrefix
-}
-
-resource "azurerm_subnet" "az_mgmt_firewall" {
-  name                 = "AzureFirewallManagementSubnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.AzFirewallMgmtSubnetPrefix
 }
 
 ### Virtual Network Gateway ###
@@ -257,16 +250,10 @@ resource "azurerm_firewall" "firewall" {
   firewall_policy_id = azurerm_firewall_policy.firewall_policy[0].id
 
   ip_configuration {
-    name      = "hub-${var.Region}-firewall-ip-config"
-    subnet_id = azurerm_subnet.az_firewall.id
-  }
-
-  management_ip_configuration {
-    name                 = "hub-${var.Region}-firewall-mgmt-config"
-    subnet_id            = azurerm_subnet.az_mgmt_firewall.id
+    name                 = "hub-${var.Region}-firewall-ip-config"
+    subnet_id            = azurerm_subnet.az_firewall.id
     public_ip_address_id = azurerm_public_ip.firewall_pip[0].id
   }
-
 }
 
 resource "azurerm_public_ip" "firewall_pip" {
