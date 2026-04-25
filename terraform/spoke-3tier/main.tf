@@ -884,15 +884,17 @@ resource "azurerm_linux_virtual_machine_scale_set" "app_vmss" {
 
 ### Database Virtual Machines ###
 
-resource "azurerm_linux_virtual_machine" "db_vm_primary" {
-  name                            = "db-${var.EnvName}-vm-primary"
-  resource_group_name             = azurerm_resource_group.db_rg.name
-  location                        = azurerm_resource_group.db_rg.location
-  size                            = var.DbVmSize
-  admin_username                  = var.AdminUsername
-  admin_password                  = var.AdminPassword
-  disable_password_authentication = false
-  network_interface_ids           = [azurerm_network_interface.db_nic_primary.id]
+resource "azurerm_windows_virtual_machine" "db_vm_primary" {
+  name                      = "db-${var.EnvName}-vm-primary"
+  resource_group_name       = azurerm_resource_group.db_rg.name
+  location                  = azurerm_resource_group.db_rg.location
+  size                      = var.DbVmSize
+  admin_username            = var.AdminUsername
+  admin_password            = var.AdminPassword
+  network_interface_ids     = [azurerm_network_interface.db_nic_primary.id]
+  provision_vm_agent        = true
+  automatic_updates_enabled = false
+  timezone                  = "UTC"
 
   os_disk {
     caching              = "ReadWrite"
@@ -920,15 +922,17 @@ resource "azurerm_network_interface_backend_address_pool_association" "primary_a
   backend_address_pool_id = azurerm_lb_backend_address_pool.data_backend_pool.id
 }
 
-resource "azurerm_linux_virtual_machine" "db_vm_secondary" {
-  name                            = "db-${var.EnvName}-vm-secondary"
-  resource_group_name             = azurerm_resource_group.db_rg.name
-  location                        = azurerm_resource_group.db_rg.location
-  size                            = var.DbVmSize
-  admin_username                  = var.AdminUsername
-  admin_password                  = var.AdminPassword
-  disable_password_authentication = false
-  network_interface_ids           = [azurerm_network_interface.db_nic_secondary.id]
+resource "azurerm_windows_virtual_machine" "db_vm_secondary" {
+  name                      = "db-${var.EnvName}-vm-secondary"
+  resource_group_name       = azurerm_resource_group.db_rg.name
+  location                  = azurerm_resource_group.db_rg.location
+  size                      = var.DbVmSize
+  admin_username            = var.AdminUsername
+  admin_password            = var.AdminPassword
+  network_interface_ids     = [azurerm_network_interface.db_nic_secondary.id]
+  provision_vm_agent        = true
+  automatic_updates_enabled = false
+  timezone                  = "UTC"
 
   os_disk {
     caching              = "ReadWrite"
@@ -969,7 +973,7 @@ resource "azurerm_managed_disk" "primary_data_disk" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "primary_data_disk_attachment" {
   managed_disk_id    = azurerm_managed_disk.primary_data_disk.id
-  virtual_machine_id = azurerm_linux_virtual_machine.db_vm_primary.id
+  virtual_machine_id = azurerm_windows_virtual_machine.db_vm_primary.id
   lun                = 0
   caching            = "ReadWrite"
 }
@@ -985,7 +989,7 @@ resource "azurerm_managed_disk" "secondary_data_disk" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "secondary_data_disk_attachment" {
   managed_disk_id    = azurerm_managed_disk.secondary_data_disk.id
-  virtual_machine_id = azurerm_linux_virtual_machine.db_vm_secondary.id
+  virtual_machine_id = azurerm_windows_virtual_machine.db_vm_secondary.id
   lun                = 0
   caching            = "ReadWrite"
 }
