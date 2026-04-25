@@ -318,11 +318,10 @@ resource "azurerm_firewall_policy_rule_collection_group" "collection_group_polic
 }
 
 resource "azurerm_monitor_diagnostic_setting" "firewall_monitoring" {
-  count                          = var.FwEnabled ? 1 : 0
-  name                           = "ActivityLog-to-hub-${var.Region}-law"
-  target_resource_id             = azurerm_firewall.firewall[0].id
-  log_analytics_workspace_id     = azurerm_log_analytics_workspace.law.id
-  log_analytics_destination_type = "AzureDiagnostics"
+  count                      = var.FwEnabled ? 1 : 0
+  name                       = "ActivityLog-to-hub-${var.Region}-law"
+  target_resource_id         = azurerm_firewall.firewall[0].id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 
   enabled_log {
     category = "AZFWNetworkRule"
