@@ -154,45 +154,51 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_subnet" "appgw_subnet" {
-  name                 = "web-appgw-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.AppGwSubnetPrefix
+  name                            = "web-appgw-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.AppGwSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "web_subnet" {
-  name                 = "web-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.WebSubnetPrefix
+  name                            = "web-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.WebSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "app_lb_subnet" {
-  name                 = "app-lb-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.AppLbSubnetPrefix
+  name                            = "app-lb-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.AppLbSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "app_subnet" {
-  name                 = "app-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.AppSubnetPrefix
+  name                            = "app-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.AppSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "data_lb_subnet" {
-  name                 = "data-lb-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.DataLbSubnetPrefix
+  name                            = "data-lb-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.DataLbSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "data_subnet" {
-  name                 = "data-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.DataSubnetPrefix
+  name                            = "data-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.DataSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 ### Peerings ###
@@ -284,6 +290,9 @@ resource "azurerm_public_ip" "web_appgw" {
   resource_group_name = azurerm_resource_group.web_rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  ip_tags = {
+    "FirstPartyUsage" = "/Unprivileged"
+  }
 }
 
 ### App Load Balancer ###
@@ -788,6 +797,9 @@ resource "azurerm_public_ip" "nat_gateway_pip" {
   resource_group_name = azurerm_resource_group.network_rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
+  ip_tags = {
+    "FirstPartyUsage" = "/Unprivileged"
+  }
 }
 
 resource "azurerm_subnet_nat_gateway_association" "web_subnet_nat_association" {

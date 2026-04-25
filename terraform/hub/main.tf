@@ -81,31 +81,35 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_subnet" "mgmt" {
-  name                 = "mgmt-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.MgmtSubnetPrefix
+  name                            = "mgmt-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.MgmtSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "gateway" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.GatewaySubnetPrefix
+  name                            = "GatewaySubnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.GatewaySubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "bastion" {
-  name                 = "AzureBastionSubnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.BastionSubnetPrefix
+  name                            = "AzureBastionSubnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.BastionSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "az_firewall" {
-  name                 = "AzureFirewallSubnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.AzFirewallSubnetPrefix
+  name                            = "AzureFirewallSubnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.AzFirewallSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 ### Virtual Network Gateway ###
@@ -134,6 +138,9 @@ resource "azurerm_public_ip" "vng_pip" {
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
+  ip_tags = {
+    "FirstPartyUsage" = "/Unprivileged"
+  }
 }
 
 ### Bastion Host ###
@@ -158,6 +165,9 @@ resource "azurerm_public_ip" "bastion" {
   location            = azurerm_resource_group.network_rg.location
   allocation_method   = "Static"
   sku                 = "Standard"
+  ip_tags = {
+    "FirstPartyUsage" = "/Unprivileged"
+  }
 }
 
 ### Route Tables Hub ###
