@@ -110,39 +110,60 @@ Write-Output '[5/6] Creating C:\opt\sls-data'
 New-Item -Path 'C:\opt\sls-data' -ItemType Directory -Force | Out-Null
 
 #--------------------------------------------------------------------------
-# 6. Install operational PowerShell modules
-#    - Force TLS 1.2 (PSGallery sometimes negotiates TLS 1.0 first and stalls)
-#    - Use Az sub-modules instead of the Az umbrella (~50MB vs ~500MB)
-#    - -AcceptLicense avoids silent license prompts on non-interactive WinRM
-#    - Each install runs in a job with a 10-min ceiling so a hang fails fast
+# 6. Install operational PowerShell modules (direct .nupkg download)
+#
+#    Bypasses PowerShellGet 1.0.0.1 and Install-PackageProvider entirely
+#    (both hang silently on stock WS2022 with no per-call timeout, and
+#    Install-Module silently waits for a license prompt that never arrives
+#    on a non-interactive WinRM session).
+#
+#    Each module is downloaded from PSGallery as a .nupkg (zip), extracted
+#    into the system module path, and the NuGet packaging metadata stripped.
+#    Wrapped in Start-Job + Wait-Job -Timeout so a hang fails fast.
+#
+#    Az dependency note: Az.Sql, Az.Storage, and Az.Compute all depend on
+#    Az.Accounts, so install Az.Accounts first.
 #--------------------------------------------------------------------------
-Write-Output '[6/6] Installing PowerShell modules'
+Write-Output '[6/6] Installing PowerShell modules (direct .nupkg from PSGallery)'
 
 [Net.ServicePointManager]::SecurityProtocol =
     [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
-if ((Get-PSRepository -Name 'PSGallery').InstallationPolicy -ne 'Trusted') {
-    Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
-}
-
-Install-PackageProvider -Name NuGet -Force -Scope AllUsers | Out-Null
-
+$moduleRoot = 'C:\Program Files\WindowsPowerShell\Modules'
 $modules = @('Az.Accounts', 'Az.Sql', 'Az.Storage', 'Az.Compute', 'dbatools')
 
 foreach ($m in $modules) {
     Write-Output "  Installing $m ..."
     $job = Start-Job -ScriptBlock {
-        param($name)
+        param($name, $root)
+        $ErrorActionPreference = 'Stop'
         [Net.ServicePointManager]::SecurityProtocol =
             [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-        Install-Module -Name $name -Scope AllUsers `
-            -Force -AllowClobber -SkipPublisherCheck -AcceptLicense
-    } -ArgumentList $m
+
+        $url  = "https://www.powershellgallery.com/api/v2/package/$name"
+        $zip  = Join-Path $env:TEMP "$name.nupkg.zip"
+        $dest = Join-Path $root $name
+
+        if (Test-Path $dest) {
+            Remove-Item -Path $dest -Recurse -Force
+        }
+        New-Item -ItemType Directory -Path $dest -Force | Out-Null
+
+        Invoke-WebRequest -Uri $url -OutFile $zip -UseBasicParsing
+        Expand-Archive  -Path $zip -DestinationPath $dest -Force
+        Remove-Item     -Path $zip -Force
+
+        # Strip NuGet packaging metadata so PowerShell sees a clean module dir
+        foreach ($junk in '_rels', 'package', '[Content_Types].xml', "$name.nuspec") {
+            $p = Join-Path $dest $junk
+            if (Test-Path $p) { Remove-Item -Path $p -Recurse -Force }
+        }
+    } -ArgumentList $m, $moduleRoot
 
     if (-not (Wait-Job -Job $job -Timeout 600)) {
         Stop-Job -Job $job
         Remove-Job -Job $job -Force
-        throw "Install-Module '$m' timed out after 10 minutes"
+        throw "Install of '$m' timed out after 10 minutes"
     }
 
     Receive-Job -Job $job
