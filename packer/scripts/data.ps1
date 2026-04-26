@@ -111,18 +111,43 @@ New-Item -Path 'C:\opt\sls-data' -ItemType Directory -Force | Out-Null
 
 #--------------------------------------------------------------------------
 # 6. Install operational PowerShell modules
+#    - Force TLS 1.2 (PSGallery sometimes negotiates TLS 1.0 first and stalls)
+#    - Use Az sub-modules instead of the Az umbrella (~50MB vs ~500MB)
+#    - -AcceptLicense avoids silent license prompts on non-interactive WinRM
+#    - Each install runs in a job with a 10-min ceiling so a hang fails fast
 #--------------------------------------------------------------------------
-Write-Output '[6/6] Installing PowerShell modules (Az, dbatools)'
+Write-Output '[6/6] Installing PowerShell modules'
 
-# Trust PSGallery so Install-Module is non-interactive
+[Net.ServicePointManager]::SecurityProtocol =
+    [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
 if ((Get-PSRepository -Name 'PSGallery').InstallationPolicy -ne 'Trusted') {
     Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
 }
 
-# NuGet provider needed for Install-Module
 Install-PackageProvider -Name NuGet -Force -Scope AllUsers | Out-Null
 
-Install-Module -Name Az       -Scope AllUsers -Force -AllowClobber -SkipPublisherCheck
-Install-Module -Name dbatools -Scope AllUsers -Force -AllowClobber -SkipPublisherCheck
+$modules = @('Az.Accounts', 'Az.Sql', 'Az.Storage', 'Az.Compute', 'dbatools')
+
+foreach ($m in $modules) {
+    Write-Output "  Installing $m ..."
+    $job = Start-Job -ScriptBlock {
+        param($name)
+        [Net.ServicePointManager]::SecurityProtocol =
+            [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        Install-Module -Name $name -Scope AllUsers `
+            -Force -AllowClobber -SkipPublisherCheck -AcceptLicense
+    } -ArgumentList $m
+
+    if (-not (Wait-Job -Job $job -Timeout 600)) {
+        Stop-Job -Job $job
+        Remove-Job -Job $job -Force
+        throw "Install-Module '$m' timed out after 10 minutes"
+    }
+
+    Receive-Job -Job $job
+    Remove-Job -Job $job
+    Write-Output "  Installed $m"
+}
 
 Write-Output '--- SLS data-tier image build complete ---'
