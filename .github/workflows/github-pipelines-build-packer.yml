@@ -62,9 +62,9 @@ jobs:
           echo "CONTAINER_SECRET_NAME=sls-packer-${{ inputs.image-build }}-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           echo "PKVARS_SECRET_NAME=${{ inputs.image-build }}-${{ github.event.inputs.environment }}.auto.pkrvars.hcl" >> $GITHUB_ENV
           if [ "${{ inputs.image-build }}" = "data" ]; then
-            echo "PACKER_TEMPLATE=build-windows.pkr.hcl" >> $GITHUB_ENV
+            echo "PACKER_ONLY=azure-arm.windows" >> $GITHUB_ENV
           else
-            echo "PACKER_TEMPLATE=build-linux.pkr.hcl" >> $GITHUB_ENV
+            echo "PACKER_ONLY=azure-arm.linux" >> $GITHUB_ENV
           fi
       - name: Login to Azure
         uses: azure/login@v2
@@ -91,12 +91,13 @@ jobs:
           cd "packer"
           packer init .
           packer validate \
+            -only="${PACKER_ONLY}" \
             -var "tenant_id=$ARM_TENANT_ID" \
             -var "subscription_id=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
             -var "client_id=$ARM_CLIENT_ID" \
             -var "client_secret=$ARM_CLIENT_SECRET" \
             -var-file="${{ github.event.inputs.image-build }}-${{ github.event.inputs.environment }}.auto.pkrvars.hcl" \
-            "${PACKER_TEMPLATE}"
+            .
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
@@ -106,12 +107,13 @@ jobs:
           cd "packer"
           packer init .
           packer build \
+            -only="${PACKER_ONLY}" \
             -var "tenant_id=$ARM_TENANT_ID" \
             -var "subscription_id=${{ secrets[env.SUBSCRIPTION_ID_SECRET_NAME] }}" \
             -var "client_id=$ARM_CLIENT_ID" \
             -var "client_secret=$ARM_CLIENT_SECRET" \
             -var-file="${{ github.event.inputs.image-build }}-${{ github.event.inputs.environment }}.auto.pkrvars.hcl" \
-            "${PACKER_TEMPLATE}"
+            .
         env:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
