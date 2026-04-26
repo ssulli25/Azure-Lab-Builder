@@ -64,7 +64,7 @@ jobs:
           if [ "${{ inputs.image-build }}" = "data" ]; then
             echo "PACKER_TEMPLATE=build-windows.pkr.hcl" >> $GITHUB_ENV
           else
-            echo "PACKER_TEMPLATE=build.pkr.hcl" >> $GITHUB_ENV
+            echo "PACKER_TEMPLATE=build-linux.pkr.hcl" >> $GITHUB_ENV
           fi
       - name: Login to Azure
         uses: azure/login@v2
