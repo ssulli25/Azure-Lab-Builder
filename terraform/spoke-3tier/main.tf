@@ -290,8 +290,9 @@ resource "azurerm_public_ip" "web_appgw" {
   resource_group_name = azurerm_resource_group.web_rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  ip_tags = {
-    "FirstPartyUsage" = "/Unprivileged"
+
+  lifecycle {
+    ignore_changes = [ip_tags]
   }
 }
 
@@ -797,8 +798,9 @@ resource "azurerm_public_ip" "nat_gateway_pip" {
   resource_group_name = azurerm_resource_group.network_rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
-  ip_tags = {
-    "FirstPartyUsage" = "/Unprivileged"
+
+  lifecycle {
+    ignore_changes = [ip_tags]
   }
 }
 
@@ -898,6 +900,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "app_vmss" {
 
 resource "azurerm_windows_virtual_machine" "db_vm_primary" {
   name                      = "db-${var.EnvName}-vm-primary"
+  computer_name             = "db-${substr(var.EnvName, 0, 9)}-pri"
   resource_group_name       = azurerm_resource_group.db_rg.name
   location                  = azurerm_resource_group.db_rg.location
   size                      = var.DbVmSize
@@ -936,6 +939,7 @@ resource "azurerm_network_interface_backend_address_pool_association" "primary_a
 
 resource "azurerm_windows_virtual_machine" "db_vm_secondary" {
   name                      = "db-${var.EnvName}-vm-secondary"
+  computer_name             = "db-${substr(var.EnvName, 0, 9)}-sec"
   resource_group_name       = azurerm_resource_group.db_rg.name
   location                  = azurerm_resource_group.db_rg.location
   size                      = var.DbVmSize

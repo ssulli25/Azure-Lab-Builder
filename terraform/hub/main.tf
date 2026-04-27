@@ -138,8 +138,9 @@ resource "azurerm_public_ip" "vng_pip" {
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
-  ip_tags = {
-    "FirstPartyUsage" = "/Unprivileged"
+
+  lifecycle {
+    ignore_changes = [ip_tags]
   }
 }
 
@@ -165,8 +166,9 @@ resource "azurerm_public_ip" "bastion" {
   location            = azurerm_resource_group.network_rg.location
   allocation_method   = "Static"
   sku                 = "Standard"
-  ip_tags = {
-    "FirstPartyUsage" = "/Unprivileged"
+
+  lifecycle {
+    ignore_changes = [ip_tags]
   }
 }
 
