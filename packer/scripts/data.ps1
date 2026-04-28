@@ -7,13 +7,17 @@
   VM (publisher: MicrosoftSQLServer, offer: sql2022-ws2022, sku: sqldev-gen2).
 
   SQL Server is already installed by the marketplace SKU. This script:
-    - Verifies SQL services are present and sets them to auto-start.
-    - Enables the Always On Availability Groups feature flag (takes effect on next service restart).
+    - Verifies SQL services are present.
+    - Sets SQL services to MANUAL start (see step 2 comment for why).
     - Opens Windows Firewall ports needed by SQL, AG mirroring, and operational tooling.
-    - Creates C:\opt\sls-data (parity with /opt/sls-data on Linux tiers).
+    - Creates C:\opt\sls-data and registers a first-boot scheduled task that
+      starts SQL after the VM Agent reports Ready.
     - Installs Az and dbatools PowerShell modules.
 
-  This script is sysprep-safe: no per-instance state is written.
+  This script is sysprep-safe: SQL services are set to Manual (not
+  Automatic), the AG feature flag is NOT enabled at image-build time,
+  and a self-deleting first-boot scheduled task brings SQL up after
+  the Azure VM Agent reports Ready on the deployed VM.
 #>
 
 $ErrorActionPreference = 'Stop'
@@ -24,7 +28,7 @@ Write-Output '--- SLS data-tier image build starting ---'
 #--------------------------------------------------------------------------
 # 1. Sanity check: SQL Server services exist
 #--------------------------------------------------------------------------
-Write-Output '[1/6] Verifying SQL Server services'
+Write-Output '[1/5] Verifying SQL Server services'
 $requiredServices = @('MSSQLSERVER', 'SQLSERVERAGENT', 'SQLBrowser')
 foreach ($svc in $requiredServices) {
     $service = Get-Service -Name $svc -ErrorAction SilentlyContinue
@@ -35,38 +39,29 @@ foreach ($svc in $requiredServices) {
 }
 
 #--------------------------------------------------------------------------
-# 2. Set SQL services to auto-start
+# 2. Set SQL services to Manual start
+#    Critical: the marketplace SQL2022 image bakes @@SERVERNAME, instance
+#    SIDs, and other per-instance state into the install. After sysprep+
+#    capture, when this image deploys to a new VM, Windows specialization
+#    renames the host. If MSSQLSERVER is set to Automatic it tries to
+#    start during first boot with the OLD hostname, hangs in error
+#    recovery, and starves the Azure VM Agent — which then never reports
+#    Ready and ARM times out (OSProvisioningTimedOut after 40 min).
+#
+#    Setting services to Manual lets the VM Agent come up cleanly. A
+#    self-deleting first-boot scheduled task (registered in step [4/5])
+#    flips them back to Automatic and starts them after the agent is
+#    settled.
 #--------------------------------------------------------------------------
-Write-Output '[2/6] Setting SQL services to Automatic start'
-Set-Service -Name 'MSSQLSERVER'    -StartupType Automatic
-Set-Service -Name 'SQLSERVERAGENT' -StartupType Automatic
-Set-Service -Name 'SQLBrowser'     -StartupType Automatic
+Write-Output '[2/5] Setting SQL services to Manual start'
+Set-Service -Name 'MSSQLSERVER'    -StartupType Manual
+Set-Service -Name 'SQLSERVERAGENT' -StartupType Manual
+Set-Service -Name 'SQLBrowser'     -StartupType Manual
 
 #--------------------------------------------------------------------------
-# 3. Enable Always On Availability Groups feature flag
-#    Idempotent — sets HADR enabled on the SQL service.
-#    Takes effect after MSSQLSERVER restart (which happens at deploy time).
+# 3. Windows Firewall rules
 #--------------------------------------------------------------------------
-Write-Output '[3/6] Enabling Always On Availability Groups feature flag'
-try {
-    Import-Module SQLPS -DisableNameChecking -ErrorAction Stop
-    $instance = (Get-Item 'SQLSERVER:\SQL\localhost\DEFAULT')
-    if (-not $instance.IsHadrEnabled) {
-        Enable-SqlAlwaysOn -ServerInstance 'localhost' -Force -NoServiceRestart
-        Write-Output '  AG feature flag enabled (will activate on next SQL service restart).'
-    } else {
-        Write-Output '  AG feature flag already enabled.'
-    }
-}
-catch {
-    Write-Warning "  Could not enable AG flag via SQLPS: $_"
-    Write-Warning '  AG can be enabled at deploy time. Continuing.'
-}
-
-#--------------------------------------------------------------------------
-# 4. Windows Firewall rules
-#--------------------------------------------------------------------------
-Write-Output '[4/6] Configuring Windows Firewall rules'
+Write-Output '[3/5] Configuring Windows Firewall rules'
 
 $firewallRules = @(
     @{ Name = 'SLS-SQL-TCP-1433';    DisplayName = 'SLS SQL Server (TCP 1433)';      Protocol = 'TCP'; LocalPort = 1433 },
@@ -104,13 +99,47 @@ New-NetFirewallRule `
 Write-Output '  Allowed inbound ICMPv4 echo'
 
 #--------------------------------------------------------------------------
-# 5. Operational directory
+# 4. Operational directory + first-boot SQL enablement task
+#
+#    The first-boot scheduled task waits 30s after VM startup (so the
+#    Azure VM Agent has time to report Ready), then flips SQL services
+#    back to Automatic and starts them. The task self-deletes after
+#    running, so subsequent reboots are no-ops.
 #--------------------------------------------------------------------------
-Write-Output '[5/6] Creating C:\opt\sls-data'
+Write-Output '[4/5] Creating C:\opt\sls-data and registering first-boot SQL task'
+
 New-Item -Path 'C:\opt\sls-data' -ItemType Directory -Force | Out-Null
 
+$firstBootScript = @'
+Start-Sleep -Seconds 30
+Set-Service -Name 'MSSQLSERVER'    -StartupType Automatic
+Set-Service -Name 'SQLSERVERAGENT' -StartupType Automatic
+Set-Service -Name 'SQLBrowser'     -StartupType Automatic
+Start-Service -Name 'MSSQLSERVER', 'SQLSERVERAGENT', 'SQLBrowser'
+schtasks.exe /Delete /TN 'SLS-FirstBoot-EnableSql' /F
+'@
+
+$firstBootPath = 'C:\opt\sls-data\firstboot-enable-sql.ps1'
+Set-Content -Path $firstBootPath -Value $firstBootScript -Encoding ASCII
+
+$action    = New-ScheduledTaskAction `
+                 -Execute 'PowerShell.exe' `
+                 -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$firstBootPath`""
+$trigger   = New-ScheduledTaskTrigger -AtStartup
+$principal = New-ScheduledTaskPrincipal `
+                 -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+$settings  = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries `
+                 -DontStopIfGoingOnBatteries -StartWhenAvailable
+
+Register-ScheduledTask -TaskName 'SLS-FirstBoot-EnableSql' `
+    -Action $action -Trigger $trigger -Principal $principal -Settings $settings `
+    -Description 'Enable and start SQL services on first boot of a generalized image; self-deletes after first run.' `
+    -Force | Out-Null
+
+Write-Output '  Registered scheduled task SLS-FirstBoot-EnableSql'
+
 #--------------------------------------------------------------------------
-# 6. Install operational PowerShell modules (direct .nupkg download)
+# 5. Install operational PowerShell modules (direct .nupkg download)
 #
 #    Bypasses PowerShellGet 1.0.0.1 and Install-PackageProvider entirely
 #    (both hang silently on stock WS2022 with no per-call timeout, and
@@ -124,7 +153,7 @@ New-Item -Path 'C:\opt\sls-data' -ItemType Directory -Force | Out-Null
 #    Az dependency note: Az.Sql, Az.Storage, and Az.Compute all depend on
 #    Az.Accounts, so install Az.Accounts first.
 #--------------------------------------------------------------------------
-Write-Output '[6/6] Installing PowerShell modules (direct .nupkg from PSGallery)'
+Write-Output '[5/5] Installing PowerShell modules (direct .nupkg from PSGallery)'
 
 [Net.ServicePointManager]::SecurityProtocol =
     [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
