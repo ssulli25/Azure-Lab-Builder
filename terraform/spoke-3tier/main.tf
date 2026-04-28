@@ -1026,9 +1026,14 @@ resource "azurerm_virtual_machine_data_disk_attachment" "secondary_data_disk_att
 # SQL on Azure VMs; replaces the prior Packer + sysprep approach which
 # Microsoft explicitly does NOT support for SQL marketplace images.
 #
-# storage_configuration uses LUN 0 (the data disk attached above) for both
-# data and log files (F: drive); tempdb stays on the ephemeral D: drive.
-# Disk format is performed by the extension on first apply.
+# storage_configuration uses LUN 0 (the data disk attached above) for data,
+# log, AND tempdb files (all on F:). Microsoft's docs support tempdb on the
+# ephemeral D: drive for higher IO, but the SQL IaaS extension is flaky
+# applying that on first boot ("System Drive returned status not ready for
+# use") because the temp disk isn't mounted yet when the extension fires.
+# Co-locating tempdb on F: trades some IO perf for first-deploy reliability,
+# which suits the dev/test workload here. Disk format is performed by the
+# extension on first apply.
 #
 # sql_license_type = "PAYG" is correct for the Developer SKU (billed at $0).
 
@@ -1052,8 +1057,8 @@ resource "azurerm_mssql_virtual_machine" "db_vm_primary" {
       luns              = [0]
     }
     temp_db_settings {
-      default_file_path = "D:\\SQLTemp"
-      luns              = []
+      default_file_path = "F:\\SQLTemp"
+      luns              = [0]
     }
   }
 
@@ -1080,8 +1085,8 @@ resource "azurerm_mssql_virtual_machine" "db_vm_secondary" {
       luns              = [0]
     }
     temp_db_settings {
-      default_file_path = "D:\\SQLTemp"
-      luns              = []
+      default_file_path = "F:\\SQLTemp"
+      luns              = [0]
     }
   }
 
