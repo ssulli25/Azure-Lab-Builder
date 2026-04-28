@@ -61,7 +61,6 @@ locals {
   stripped_env_name        = replace(replace(var.EnvName, "sa-", ""), "hs-", "")
   web_vmss_source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.WebImageId}"
   app_vmss_source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.AppImageId}"
-  data_vm_source_image_id  = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.DataImageId}"
 }
 
 #===============#
@@ -916,7 +915,18 @@ resource "azurerm_windows_virtual_machine" "db_vm_primary" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_id = local.data_vm_source_image_id
+  source_image_reference {
+    publisher = "MicrosoftSQLServer"
+    offer     = "sql2022-ws2022"
+    sku       = "sqldev-gen2"
+    version   = "latest"
+  }
+
+  plan {
+    name      = "sqldev-gen2"
+    product   = "sql2022-ws2022"
+    publisher = "microsoftsqlserver"
+  }
 }
 
 resource "azurerm_network_interface" "db_nic_primary" {
@@ -955,7 +965,18 @@ resource "azurerm_windows_virtual_machine" "db_vm_secondary" {
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_id = local.data_vm_source_image_id
+  source_image_reference {
+    publisher = "MicrosoftSQLServer"
+    offer     = "sql2022-ws2022"
+    sku       = "sqldev-gen2"
+    version   = "latest"
+  }
+
+  plan {
+    name      = "sqldev-gen2"
+    product   = "sql2022-ws2022"
+    publisher = "microsoftsqlserver"
+  }
 }
 
 resource "azurerm_network_interface" "db_nic_secondary" {
@@ -1008,4 +1029,111 @@ resource "azurerm_virtual_machine_data_disk_attachment" "secondary_data_disk_att
   virtual_machine_id = azurerm_windows_virtual_machine.db_vm_secondary.id
   lun                = 0
   caching            = "ReadWrite"
+}
+
+### SQL IaaS Agent Extension (azurerm_mssql_virtual_machine) ###
+#
+# Companion resource to each db_vm_* — installs and configures the SQL IaaS
+# Agent extension on the marketplace SQL VM. Microsoft's blessed pattern for
+# SQL on Azure VMs; replaces the prior Packer + sysprep approach which
+# Microsoft explicitly does NOT support for SQL marketplace images.
+#
+# storage_configuration uses LUN 0 (the data disk attached above) for both
+# data and log files (F: drive); tempdb stays on the ephemeral D: drive.
+# Disk format is performed by the extension on first apply.
+#
+# sql_license_type = "PAYG" is correct for the Developer SKU (billed at $0).
+
+resource "azurerm_mssql_virtual_machine" "db_vm_primary" {
+  virtual_machine_id    = azurerm_windows_virtual_machine.db_vm_primary.id
+  sql_license_type      = "PAYG"
+  r_services_enabled    = false
+  sql_connectivity_port = 1433
+  sql_connectivity_type = "PRIVATE"
+
+  storage_configuration {
+    disk_type             = "NEW"
+    storage_workload_type = "GENERAL"
+
+    data_settings {
+      default_file_path = "F:\\SQLData"
+      luns              = [0]
+    }
+    log_settings {
+      default_file_path = "F:\\SQLLog"
+      luns              = [0]
+    }
+    temp_db_settings {
+      default_file_path = "D:\\SQLTemp"
+      luns              = []
+    }
+  }
+
+  depends_on = [azurerm_virtual_machine_data_disk_attachment.primary_data_disk_attachment]
+}
+
+resource "azurerm_mssql_virtual_machine" "db_vm_secondary" {
+  virtual_machine_id    = azurerm_windows_virtual_machine.db_vm_secondary.id
+  sql_license_type      = "PAYG"
+  r_services_enabled    = false
+  sql_connectivity_port = 1433
+  sql_connectivity_type = "PRIVATE"
+
+  storage_configuration {
+    disk_type             = "NEW"
+    storage_workload_type = "GENERAL"
+
+    data_settings {
+      default_file_path = "F:\\SQLData"
+      luns              = [0]
+    }
+    log_settings {
+      default_file_path = "F:\\SQLLog"
+      luns              = [0]
+    }
+    temp_db_settings {
+      default_file_path = "D:\\SQLTemp"
+      luns              = []
+    }
+  }
+
+  depends_on = [azurerm_virtual_machine_data_disk_attachment.secondary_data_disk_attachment]
+}
+
+### Data-Tier OS Bootstrap (CustomScriptExtension) ###
+#
+# Runs scripts/data-bootstrap.ps1 to apply OS-level customizations (firewall
+# rules, ops directory, PowerShell modules) that the SQL IaaS extension does
+# not handle. Intentionally does NOT manage SQL services, AG/HADR flags, or
+# disk formatting — those are owned by the SQL IaaS extension. depends_on
+# ensures the SQL IaaS extension installs first.
+
+resource "azurerm_virtual_machine_extension" "db_vm_primary_bootstrap" {
+  name                       = "sls-data-bootstrap"
+  virtual_machine_id         = azurerm_windows_virtual_machine.db_vm_primary.id
+  publisher                  = "Microsoft.Compute"
+  type                       = "CustomScriptExtension"
+  type_handler_version       = "1.10"
+  auto_upgrade_minor_version = true
+
+  protected_settings = jsonencode({
+    commandToExecute = "powershell.exe -ExecutionPolicy Bypass -EncodedCommand ${textencodebase64(file("${path.module}/scripts/data-bootstrap.ps1"), "UTF-16LE")}"
+  })
+
+  depends_on = [azurerm_mssql_virtual_machine.db_vm_primary]
+}
+
+resource "azurerm_virtual_machine_extension" "db_vm_secondary_bootstrap" {
+  name                       = "sls-data-bootstrap"
+  virtual_machine_id         = azurerm_windows_virtual_machine.db_vm_secondary.id
+  publisher                  = "Microsoft.Compute"
+  type                       = "CustomScriptExtension"
+  type_handler_version       = "1.10"
+  auto_upgrade_minor_version = true
+
+  protected_settings = jsonencode({
+    commandToExecute = "powershell.exe -ExecutionPolicy Bypass -EncodedCommand ${textencodebase64(file("${path.module}/scripts/data-bootstrap.ps1"), "UTF-16LE")}"
+  })
+
+  depends_on = [azurerm_mssql_virtual_machine.db_vm_secondary]
 }

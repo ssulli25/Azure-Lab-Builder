@@ -59,19 +59,9 @@ variable "build" {}
 # Per-OS provisioner inputs
 #
 # - playbook_file is consumed by build-linux.pkr.hcl (Ansible).
-# - script_file   is consumed by build-windows.pkr.hcl (PowerShell).
-#
-# Empty defaults keep each pkrvars file simple: web/app pkrvars sets only
-# playbook_file; data pkrvars sets only script_file. The unused variable
-# stays at "" without causing a "no value provided" error.
 #############################################################################
 
 variable "playbook_file" {
-  type    = string
-  default = ""
-}
-
-variable "script_file" {
   type    = string
   default = ""
 }
