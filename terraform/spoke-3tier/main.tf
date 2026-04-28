@@ -921,12 +921,6 @@ resource "azurerm_windows_virtual_machine" "db_vm_primary" {
     sku       = "sqldev-gen2"
     version   = "latest"
   }
-
-  plan {
-    name      = "sqldev-gen2"
-    product   = "sql2022-ws2022"
-    publisher = "microsoftsqlserver"
-  }
 }
 
 resource "azurerm_network_interface" "db_nic_primary" {
@@ -970,12 +964,6 @@ resource "azurerm_windows_virtual_machine" "db_vm_secondary" {
     offer     = "sql2022-ws2022"
     sku       = "sqldev-gen2"
     version   = "latest"
-  }
-
-  plan {
-    name      = "sqldev-gen2"
-    product   = "sql2022-ws2022"
-    publisher = "microsoftsqlserver"
   }
 }
 
