@@ -385,7 +385,7 @@ resource "azurerm_monitor_diagnostic_setting" "firewall_monitoring" {
     category = "AZFWNatRuleAggregation"
   }
 
-  metric {
+  enabled_metric {
     category = "allMetrics"
   }
 }

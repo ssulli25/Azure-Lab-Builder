@@ -42,14 +42,20 @@ jobs:
           terraform -v
           terraform init -backend=false
           terraform validate
-      - name: Validate Terraform Application
+      - name: Validate Terraform Spoke (3-Tier)
         run: |
-          echo "##### Validating Terraform for Application Code #####"
-          cd "terraform/spoke"
+          echo "##### Validating Terraform for 3-Tier Spoke #####"
+          cd "terraform/spoke-3tier"
           terraform -v
           terraform init -backend=false
           terraform validate
-### Update folder above after testing.
+      - name: Validate Terraform Spoke (Microservices)
+        run: |
+          echo "##### Validating Terraform for Microservices Spoke #####"
+          cd "terraform/spoke-microservices"
+          terraform -v
+          terraform init -backend=false
+          terraform validate
 
   Tag_Commit_with_Version:
     name: Tag Commit with Version
