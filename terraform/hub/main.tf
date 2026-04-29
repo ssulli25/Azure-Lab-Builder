@@ -85,34 +85,31 @@ resource "azurerm_subnet" "mgmt" {
   resource_group_name             = azurerm_resource_group.network_rg.name
   virtual_network_name            = azurerm_virtual_network.vnet.name
   address_prefixes                = var.MgmtSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "gateway" {
-  name                 = "GatewaySubnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.GatewaySubnetPrefix
+  name                            = "GatewaySubnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.GatewaySubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "bastion" {
-  name                 = "AzureBastionSubnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.BastionSubnetPrefix
+  name                            = "AzureBastionSubnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.BastionSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "az_firewall" {
-  name                 = "AzureFirewallSubnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.AzFirewallSubnetPrefix
-}
-
-resource "azurerm_subnet" "az_mgmt_firewall" {
-  name                 = "AzureFirewallManagementSubnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.AzFirewallMgmtSubnetPrefix
+  name                            = "AzureFirewallSubnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.AzFirewallSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 ### Virtual Network Gateway ###
@@ -141,6 +138,10 @@ resource "azurerm_public_ip" "vng_pip" {
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
+
+  lifecycle {
+    ignore_changes = [ip_tags]
+  }
 }
 
 ### Bastion Host ###
@@ -165,6 +166,10 @@ resource "azurerm_public_ip" "bastion" {
   location            = azurerm_resource_group.network_rg.location
   allocation_method   = "Static"
   sku                 = "Standard"
+
+  lifecycle {
+    ignore_changes = [ip_tags]
+  }
 }
 
 ### Route Tables Hub ###
@@ -257,16 +262,10 @@ resource "azurerm_firewall" "firewall" {
   firewall_policy_id = azurerm_firewall_policy.firewall_policy[0].id
 
   ip_configuration {
-    name      = "hub-${var.Region}-firewall-ip-config"
-    subnet_id = azurerm_subnet.az_firewall.id
-  }
-
-  management_ip_configuration {
-    name                 = "hub-${var.Region}-firewall-mgmt-config"
-    subnet_id            = azurerm_subnet.az_mgmt_firewall.id
+    name                 = "hub-${var.Region}-firewall-ip-config"
+    subnet_id            = azurerm_subnet.az_firewall.id
     public_ip_address_id = azurerm_public_ip.firewall_pip[0].id
   }
-
 }
 
 resource "azurerm_public_ip" "firewall_pip" {
@@ -331,11 +330,10 @@ resource "azurerm_firewall_policy_rule_collection_group" "collection_group_polic
 }
 
 resource "azurerm_monitor_diagnostic_setting" "firewall_monitoring" {
-  count                          = var.FwEnabled ? 1 : 0
-  name                           = "ActivityLog-to-hub-${var.Region}-law"
-  target_resource_id             = azurerm_firewall.firewall[0].id
-  log_analytics_workspace_id     = azurerm_log_analytics_workspace.law.id
-  log_analytics_destination_type = "AzureDiagnostics"
+  count                      = var.FwEnabled ? 1 : 0
+  name                       = "ActivityLog-to-hub-${var.Region}-law"
+  target_resource_id         = azurerm_firewall.firewall[0].id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 
   enabled_log {
     category = "AZFWNetworkRule"

@@ -1,66 +1,10 @@
-#===========================#
-# Providers & Configuration #
-#===========================#
+### Linux build template (web + app tiers) ###
+#
+# Plugin and variable declarations live in _shared.pkr.hcl so that
+# this template and build-windows.pkr.hcl can coexist in the same
+# directory without duplicate-declaration errors.
 
-packer {
-  required_plugins {
-    azure = {
-      version = ">= 1.0.0"
-      source  = "github.com/hashicorp/azure"
-    }
-    ansible = {
-      version = ">= 1.0.0"
-      source  = "github.com/hashicorp/ansible"
-    }
-  }
-}
-
-
-### Variables Section ###
-
-#############################################################################
-# Tenant
-#############################################################################
-
-variable "tenant_id" {
-    type = string
-}
-
-#############################################################################
-# Subscription
-#############################################################################
-
-variable "subscription_id" {
-    type = string
-}
-
-#############################################################################
-# Client Id + Secret
-#############################################################################
-
-variable "client_id" {
-    type = string
-}
-variable "client_secret" {
-    type = string
-}
-
-#############################################################################
-# Build
-#############################################################################
-
-variable "build" {}
-
-#############################################################################
-# Playbook
-#############################################################################
-
-variable "playbook_file" {}
-
-
-### Build file for Packer ###
-
-source "azure-arm" "build" {
+source "azure-arm" "linux" {
   azure_tags                        = var.build["azure_tags"]
   client_id                         = var.client_id
   client_secret                     = var.client_secret
@@ -96,7 +40,7 @@ source "azure-arm" "build" {
 }
 
 build {
-  sources = ["source.azure-arm.build"]
+  sources = ["source.azure-arm.linux"]
 
   provisioner "ansible" {
 
