@@ -1095,17 +1095,22 @@ resource "azurerm_mssql_virtual_machine" "db_vm_secondary" {
 
 ### Data-Tier OS Bootstrap (CustomScriptExtension) ###
 #
-# Runs scripts/data-bootstrap.ps1 to apply OS-level customizations (firewall
-# rules, ops directory, PowerShell modules) that the SQL IaaS extension does
-# not handle. Intentionally does NOT manage SQL services, AG/HADR flags, or
-# disk formatting — those are owned by the SQL IaaS extension. depends_on
-# ensures the SQL IaaS extension installs first.
+# Runs scripts/data-bootstrap.ps1 as a Windows CSE after the SQL IaaS
+# Agent extension. Applies OS-level customizations the SQL IaaS extension
+# does not handle (firewall rules for AG/Browser/ICMP, ops dir, dbatools).
+# Intentionally does NOT manage SQL services, AG/HADR flags, or disk
+# formatting — those are owned by the SQL IaaS extension.
 #
-# Uses the CSE Windows v1.10+ `script` mode (not `commandToExecute`):
-# settings.script is base64(raw script). The extension decodes it, writes
-# the .ps1 to disk on the VM, and invokes PowerShell directly — bypassing
-# cmd.exe and its ~8KB command-line limit (which `commandToExecute` with
-# -EncodedCommand of a 5KB+ script would blow past on first apply).
+# Invocation pattern: commandToExecute with -EncodedCommand.
+#   - The Windows CSE (Microsoft.Compute/CustomScriptExtension v1.10) does
+#     NOT support an inline `script` field — that's a Linux-CSE-only
+#     feature. Windows requires commandToExecute (optionally with fileUris).
+#   - We base64(UTF-16LE) the script and pass via -EncodedCommand. cmd.exe
+#     caps the command line at ~8192 chars; encoding overhead is ~2.67x raw.
+#     Current script ~2.2KB raw → ~5.9KB encoded total → ~28% headroom.
+#     If the script ever needs to grow past ~3KB raw, switch to fileUris.
+#   - protected_settings (not settings) keeps the encoded payload out of
+#     plaintext Azure activity logs as a defensive default.
 
 resource "azurerm_virtual_machine_extension" "db_vm_primary_bootstrap" {
   name                       = "sls-data-bootstrap"
@@ -1115,8 +1120,8 @@ resource "azurerm_virtual_machine_extension" "db_vm_primary_bootstrap" {
   type_handler_version       = "1.10"
   auto_upgrade_minor_version = true
 
-  settings = jsonencode({
-    script = base64encode(file("${path.module}/scripts/data-bootstrap.ps1"))
+  protected_settings = jsonencode({
+    commandToExecute = "powershell.exe -ExecutionPolicy Bypass -EncodedCommand ${textencodebase64(file("${path.module}/scripts/data-bootstrap.ps1"), "UTF-16LE")}"
   })
 
   depends_on = [azurerm_mssql_virtual_machine.db_vm_primary]
@@ -1130,8 +1135,8 @@ resource "azurerm_virtual_machine_extension" "db_vm_secondary_bootstrap" {
   type_handler_version       = "1.10"
   auto_upgrade_minor_version = true
 
-  settings = jsonencode({
-    script = base64encode(file("${path.module}/scripts/data-bootstrap.ps1"))
+  protected_settings = jsonencode({
+    commandToExecute = "powershell.exe -ExecutionPolicy Bypass -EncodedCommand ${textencodebase64(file("${path.module}/scripts/data-bootstrap.ps1"), "UTF-16LE")}"
   })
 
   depends_on = [azurerm_mssql_virtual_machine.db_vm_secondary]
