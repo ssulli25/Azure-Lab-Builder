@@ -1100,6 +1100,12 @@ resource "azurerm_mssql_virtual_machine" "db_vm_secondary" {
 # not handle. Intentionally does NOT manage SQL services, AG/HADR flags, or
 # disk formatting — those are owned by the SQL IaaS extension. depends_on
 # ensures the SQL IaaS extension installs first.
+#
+# Uses the CSE Windows v1.10+ `script` mode (not `commandToExecute`):
+# settings.script is base64(raw script). The extension decodes it, writes
+# the .ps1 to disk on the VM, and invokes PowerShell directly — bypassing
+# cmd.exe and its ~8KB command-line limit (which `commandToExecute` with
+# -EncodedCommand of a 5KB+ script would blow past on first apply).
 
 resource "azurerm_virtual_machine_extension" "db_vm_primary_bootstrap" {
   name                       = "sls-data-bootstrap"
@@ -1109,8 +1115,8 @@ resource "azurerm_virtual_machine_extension" "db_vm_primary_bootstrap" {
   type_handler_version       = "1.10"
   auto_upgrade_minor_version = true
 
-  protected_settings = jsonencode({
-    commandToExecute = "powershell.exe -ExecutionPolicy Bypass -EncodedCommand ${textencodebase64(file("${path.module}/scripts/data-bootstrap.ps1"), "UTF-16LE")}"
+  settings = jsonencode({
+    script = base64encode(file("${path.module}/scripts/data-bootstrap.ps1"))
   })
 
   depends_on = [azurerm_mssql_virtual_machine.db_vm_primary]
@@ -1124,8 +1130,8 @@ resource "azurerm_virtual_machine_extension" "db_vm_secondary_bootstrap" {
   type_handler_version       = "1.10"
   auto_upgrade_minor_version = true
 
-  protected_settings = jsonencode({
-    commandToExecute = "powershell.exe -ExecutionPolicy Bypass -EncodedCommand ${textencodebase64(file("${path.module}/scripts/data-bootstrap.ps1"), "UTF-16LE")}"
+  settings = jsonencode({
+    script = base64encode(file("${path.module}/scripts/data-bootstrap.ps1"))
   })
 
   depends_on = [azurerm_mssql_virtual_machine.db_vm_secondary]
