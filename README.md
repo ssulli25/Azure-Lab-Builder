@@ -2,22 +2,29 @@
 
 ## Overview
 
-**Azure-Lab-Builder** is a project for deploying, configuring, and managing a modular Azure lab environment. It leverages Terraform, Packer, Ansible, and automation scripts to enable rapid, repeatable, and secure provisioning of hub-and-spoke and stand-alone three-tier architectures. It utilizes network topologies, compute engines, and supporting resources for development, testing, or training scenarios.
+**Azure-Lab-Builder** is a project for deploying, configuring, and managing a modular Azure lab environment. It leverages Terraform, Packer, Ansible, and automation scripts to enable rapid, repeatable, and secure provisioning of hub-and-spoke and stand-alone topologies. Two spoke architectures are supported — a classic **3-tier** model (web/app/data tiers on VMSS + PostgreSQL) and a **microservices** model (AKS + Azure SQL Database) — selectable per deployment via a single workflow input.
 
 ---
 
 ## Architecture
 
-Azure-Lab-Builder supports two primary deployment models: **hub-and-spoke** and **stand-alone three-tier** architectures. Both models are designed for modular, scalable, and secure Azure lab environments.
+Azure-Lab-Builder supports two **topologies** — **hub-and-spoke** and **stand-alone** — and within each topology two **spoke architectures** (selected via the `architecture_type` workflow input):
+
+| `architecture_type` | Compute | Data tier | Ingress | Terraform directory |
+|---|---|---|---|---|
+| `3tier` | VMSS (web + app, Nginx + .NET via Packer/Ansible) | 2× PostgreSQL VMs behind internal LB | Application Gateway | `terraform/spoke-3tier/` |
+| `microservices` | Azure Kubernetes Service (private API, Workload Identity, Azure CNI Overlay) | Azure SQL Database (PaaS, Entra-only auth, Private Endpoint) | App Gateway Ingress Controller (AGIC) | `terraform/spoke-microservices/` |
+
+The same `terraform/hub/` is reused by both architectures and both topologies. Selecting `microservices` provisions an AKS cluster, ACR (Premium with Private Endpoint), Key Vault, a User-Assigned Managed Identity, NAT Gateway (when no hub firewall is present), and Private DNS zones for the relevant `privatelink` namespaces — see `terraform/spoke-microservices/main.tf` for the full inventory.
 
 ### Hub-and-Spoke Architecture
 
 - **Hub Network:**  
   Centralized networking resources, shared services, and security controls (such as firewalls, bastion hosts, or VPN gateways). The hub acts as the core for connectivity and policy enforcement.
 - **Spoke Networks:**  
-  Isolated environments for workloads (web, app, data), each with their own subnets and resources. Spokes connect to the hub for shared services and inter-spoke communication.
-- **Custom Images & Provisioning:**  
-  Supports consistent configuration of compute resources using Packer, Ansible, or other provisioning tools.
+  Isolated environments for workloads, each with their own subnets and resources. Spokes connect to the hub for shared services and inter-spoke communication. The workload layout depends on the selected `architecture_type` (3-tier vs microservices — see table above).
+- **Custom Images & Provisioning (3-tier only):**  
+  Supports consistent configuration of compute resources using Packer and Ansible.
 - **Automation Scripts:**  
   Shell scripts for architecture verification and deployment logic.
 
@@ -26,16 +33,16 @@ Ideal for comprehensive testing that requires centralized management, shared ser
 
 ---
 
-### Stand-Alone Three-Tier Architecture
+### Stand-Alone Architecture
 
 - **Virtual Network:**  
-  A single, isolated virtual network with dedicated subnets for each tier (web, app, data).
-- **Workload Tiers:**  
-  Web, application, and data tiers that can be configured to host relevant services for your solution.
-- **Custom Images & Provisioning:**  
-  Supports consistent configuration of compute resources using Packer, Ansible, or other provisioning tools.
+  A single, isolated virtual network with dedicated subnets sized for the selected `architecture_type`.
+- **Workload layout:**  
+  Either web/app/data tiers (3-tier) or AKS + Azure SQL + supporting services (microservices) — see the table above.
+- **Custom Images & Provisioning (3-tier only):**  
+  Packer + Ansible build the VMSS images.
 - **Network Security Groups (NSGs):**  
-  Enforce traffic rules and segmentation between tiers and control access to the environment.
+  Enforce traffic rules and segmentation between subnets and control access to the environment.
 - **Automation Scripts:**  
   Shell scripts to verify architecture selection, automate deployment steps, and enforce environment standards.
 
@@ -62,24 +69,108 @@ Azure-Lab-Builder/
 │   ├── sub-cost-estimation.ps1          # Azure subscription cost analysis
 │   ├── sub-quota-usage.ps1              # Subscription quota monitoring and reporting
 │   ├── ubuntu-linux-vm-vmss-update.ps1  # Ubuntu VM/VMSS update automation
-│   └── verify-architecture-selection.sh # Architecture deployment validation
+│   ├── verify-architecture-selection.sh # Architecture (true/false) deployment gate
+│   └── verify-architecture-type.sh      # Validates architecture_type input (3tier|microservices)
 ├── terraform/
 │   ├── hub/
-│   │   ├── main.tf                      # Hub infrastructure resources
+│   │   ├── main.tf                      # Hub infrastructure resources (shared)
 │   │   ├── providers.tf                 # Azure provider configuration
 │   │   └── variables.tf                 # Hub configuration variables
-│   └── spoke/
-│       ├── main.tf                      # Spoke infrastructure resources
+│   ├── spoke-3tier/
+│   │   ├── main.tf                      # 3-tier spoke (VMSS + PostgreSQL)
+│   │   ├── providers.tf                 # Azure provider configuration
+│   │   └── variables.tf                 # 3-tier spoke configuration variables
+│   └── spoke-microservices/
+│       ├── main.tf                      # Microservices spoke (AKS + Azure SQL)
 │       ├── providers.tf                 # Azure provider configuration
-│       └── variables.tf                 # Spoke configuration variables
+│       └── variables.tf                 # Microservices spoke configuration variables
 └── .github/
     └── workflows/
-        ├── github-pipelines-build.yml              # General build pipeline
-        ├── github-pipelines-build-packer.yml       # Packer image build pipeline
-        ├── github-pipelines-deploy-hub+spoke.yml   # Hub-and-spoke deployment
-        ├── github-pipelines-deploy-stand+alone.yml # Stand-alone deployment
+        ├── github-pipelines-build.yml              # General build pipeline (validates both spokes)
+        ├── github-pipelines-build-packer.yml       # Packer image build pipeline (3-tier only)
+        ├── github-pipelines-config-aks.yml         # Placeholder for AKS in-cluster baseline config
+        ├── github-pipelines-deploy-hub+spoke.yml   # Hub-and-spoke deployment (architecture_type-aware)
+        ├── github-pipelines-deploy-stand+alone.yml # Stand-alone deployment (architecture_type-aware)
         └── github-pipelines-deploy-utility.yml     # Utility scripts execution pipeline
 ```
+
+### Tfvars convention
+
+Per-environment Terraform variables are stored in a secure Azure Storage container (`sls-terraform-state-<env>` for hub+spoke, `sls-terraform-state-sa-<env>` for stand-alone) and downloaded at deploy time. A single shared file per env covers both architectures:
+
+| Use | Filename |
+|---|---|
+| Hub | `hub.auto.tfvars` |
+| Spoke (per env, both architectures) | `<env>.auto.tfvars` |
+
+Organize the file with comment headers so you can see at a glance which keys belong to which architecture:
+
+```hcl
+# === Shared ===
+Region            = "eastus"
+VnetAddressSpace  = ["10.20.0.0/16"]
+
+# === 3-tier ===
+WebSubnetPrefix    = ["10.20.0.0/24"]
+AppSubnetPrefix    = ["10.20.1.0/24"]
+DataSubnetPrefix   = ["10.20.2.0/24"]
+AppGwSubnetPrefix  = ["10.20.3.0/24"]
+AppLbSubnetPrefix  = ["10.20.4.0/24"]
+DataLbSubnetPrefix = ["10.20.5.0/24"]
+WebVmssSize        = "Standard_D2s_v5"
+AppVmssSize        = "Standard_D2s_v5"
+DbVmSize           = "Standard_D2s_v5"
+WebInstanceCount   = 2
+AppInstanceCount   = 2
+WebImageId         = "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Compute/galleries/<gallery>/images/<def>/versions/<ver>"
+AppImageId         = "..."   # same Shared Image Gallery resource ID pattern as WebImageId
+DataImageId        = "..."   # same Shared Image Gallery resource ID pattern as WebImageId
+AdminUsername      = "labadmin"
+
+# === Microservices ===
+AksSystemSubnetPrefix       = ["10.20.0.0/24"]
+AksUserSubnetPrefix         = ["10.20.1.0/24"]
+AppGwSubnetPrefix           = ["10.20.2.0/24"]
+PrivateEndpointSubnetPrefix = ["10.20.3.0/24"]
+SqlAdminLogin               = "sqladmin"
+AksSystemNodeVmSize         = "Standard_D2s_v5"
+AksUserNodeVmSize           = "Standard_D4s_v5"
+AksUserNodeMin              = 1
+AksUserNodeMax              = 3
+AksPodCidr                  = "100.64.0.0/16"     # MUST NOT overlap any peered network
+AksServiceCidr              = "172.16.0.0/16"
+AksDnsServiceIp             = "172.16.0.10"
+AcrSku                      = "Premium"
+SqlDatabaseSku              = "GP_S_Gen5_2"
+```
+
+> When you run a given architecture, Terraform will emit a harmless `Warning: Value for undeclared variable` for each key that belongs to the OTHER architecture. This is cosmetic — `auto.tfvars` undeclared-variable warnings do not fail the run.
+>
+> The two architectures cannot coexist in the same env (the spoke VNet name `<EnvName>-<Region>-vnet` would collide). Deploy them into separate envs, or destroy one before standing up the other.
+
+### Terraform state keys
+
+| Use | State key |
+|---|---|
+| Hub | `hub.tfstate` |
+| 3-tier spoke (per env) | `<env>-3tier.tfstate` |
+| Microservices spoke (per env) | `<env>-microservices.tfstate` |
+
+> **Backend migration note:** earlier versions used `<env>.tfstate` (no architecture suffix) for the 3-tier spoke. Before your next 3-tier deploy, in each `sls-terraform-state-<env>` and `sls-terraform-state-sa-<env>` container either:
+>
+> - **Rename** the existing blob `<env>.tfstate` → `<env>-3tier.tfstate` (Azure blobs cannot be renamed in place — copy then delete):
+>
+>   ```bash
+>   az storage blob copy start \
+>     --source-container <container> --source-blob <env>.tfstate \
+>     --destination-container <container> --destination-blob <env>-3tier.tfstate \
+>     --account-name <storage-account> --auth-mode login
+>   az storage blob delete \
+>     --container-name <container> --name <env>.tfstate \
+>     --account-name <storage-account> --auth-mode login
+>   ```
+>
+> - **OR start fresh** if you have no live 3-tier resources to track — the next apply will create a new `<env>-3tier.tfstate`, and you can delete the orphan `<env>.tfstate`.
 
 ## Prerequisites
 

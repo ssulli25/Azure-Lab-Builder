@@ -26,10 +26,6 @@ variable "DataLbSubnetPrefix" {
   type = list(string)
 }
 
-variable "DataImageId" {
-  type = string
-}
-
 variable "DataSubnetPrefix" {
   type = list(string)
 }

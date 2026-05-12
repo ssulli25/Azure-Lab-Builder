@@ -17,6 +17,14 @@ on:
           - 'true'
           - 'false'
         default: 'true'
+      architecture_type:
+        description: 'Which spoke architecture should be deployed?'
+        required: true
+        type: choice
+        options:
+          - '3tier'
+          - 'microservices'
+        default: '3tier'
       environment:
         description: 'Please select a spoke name: dev or prod'
         required: true
@@ -75,18 +83,22 @@ jobs:
     if: ${{ github.event.inputs.terraform_action == 'apply' || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'false') }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Make scripts executable
-        run: chmod +x ./scripts/verify-architecture-selection.sh
-      - name: Verify Deployment of Hub & Spoke Architecture
+        run: |
+          chmod +x ./scripts/verify-architecture-selection.sh
+          chmod +x ./scripts/verify-architecture-type.sh
+      - name: Verify Architecture Selection
         run: ./scripts/verify-architecture-selection.sh ${{ github.event.inputs.architecture }}
+      - name: Verify Architecture Type
+        run: ./scripts/verify-architecture-type.sh ${{ github.event.inputs.architecture_type }}
   Hub_Verification:
     name: Hub Verification
     needs: Input_Verification 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Set secret names
         id: set_secrets
         run: |
@@ -95,11 +107,11 @@ jobs:
           echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
           echo "CONTAINER_SECRET_NAME=${{ secrets.HUB_CONTAINER_NAME }}" >> $GITHUB_ENV
       - name: Login to Azure - Hub
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
@@ -154,6 +166,7 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          TF_VAR_AksKubernetesVersion: ${{ vars.AKS_KUBERNETES_VERSION }}
           HUB_VNET_CIDR: ${{ secrets.HUB_VNET_CIDR }}
           BASTION_SUBNET_CIDR: ${{ secrets.BASTION_SUBNET_CIDR }}
           GATEWAY_SUBNET_CIDR: ${{ secrets.GATEWAY_SUBNET_CIDR }}
@@ -166,7 +179,7 @@ jobs:
     if: ${{ github.event.inputs.terraform_action == 'apply' || (github.event.inputs.terraform_action == 'destroy' && github.event.inputs.delete_spoke_only == 'false') }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Make scripts executable
         run: chmod +x ./scripts/check-job-status.sh
       - name: Check Previous Job Status
@@ -179,11 +192,11 @@ jobs:
           echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
           echo "CONTAINER_SECRET_NAME=${{ secrets.HUB_CONTAINER_NAME }}" >> $GITHUB_ENV
       - name: Login to Azure - Hub
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
@@ -227,6 +240,7 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          TF_VAR_AksKubernetesVersion: ${{ vars.AKS_KUBERNETES_VERSION }}
       - name: Set output
         id: deployment_output
         run: echo "::set-output name=run::true"
@@ -239,7 +253,7 @@ jobs:
     if: always()
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Make scripts executable
         run: chmod +x ./scripts/check-job-status.sh
       - name: Check Previous Job Status
@@ -252,18 +266,20 @@ jobs:
           echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
           echo "CONTAINER_SECRET_NAME=sls-terraform-state-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           echo "TFVARS_SECRET_NAME=${{ github.event.inputs.environment }}.auto.tfvars" >> $GITHUB_ENV
+          echo "SPOKE_DIR=spoke-${{ github.event.inputs.architecture_type }}" >> $GITHUB_ENV
+          echo "STATE_KEY=${{ github.event.inputs.environment }}-${{ github.event.inputs.architecture_type }}.tfstate" >> $GITHUB_ENV
       - name: Login to Azure
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
         run: |
           az storage blob download \
-            --file ./terraform/spoke/${{ env.TFVARS_SECRET_NAME }} \
+            --file ./terraform/${{ env.SPOKE_DIR }}/${{ env.TFVARS_SECRET_NAME }} \
             --container-name ${{ env.CONTAINER_SECRET_NAME }} \
             --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }} \
             --name ${{ env.TFVARS_SECRET_NAME }} \
@@ -271,7 +287,7 @@ jobs:
             --no-progress > /dev/null
       - name: Terraform - Setup Backend, Initialize, and Plan
         run: |
-          cd "terraform/spoke"
+          cd "terraform/${{ env.SPOKE_DIR }}"
           cat >backend.tf <<EOL
           terraform {
             backend "azurerm" {
@@ -279,7 +295,7 @@ jobs:
               resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
               storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
               container_name       = "$ARM_CONTAINER_NAME"
-              key                  = "${{ github.event.inputs.environment }}.tfstate"
+              key                  = "${{ env.STATE_KEY }}"
               client_id            = "$ARM_CLIENT_ID"
               client_secret        = "$ARM_CLIENT_SECRET"
               tenant_id            = "$ARM_TENANT_ID"
@@ -316,6 +332,7 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          TF_VAR_AksKubernetesVersion: ${{ vars.AKS_KUBERNETES_VERSION }}
 
   App_Deployment:
     name: Deployment - ${{ inputs.environment }} environment
@@ -324,7 +341,7 @@ jobs:
     if: always()
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Make scripts executable
         run: chmod +x ./scripts/check-job-status.sh
       - name: Check Previous Job Status
@@ -337,18 +354,20 @@ jobs:
           echo "STORAGE_ACCOUNT_SECRET_NAME=${{ secrets.ARM_BACKEND_STORAGE_ACCOUNT_NAME }}" >> $GITHUB_ENV
           echo "CONTAINER_SECRET_NAME=sls-terraform-state-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
           echo "TFVARS_SECRET_NAME=${{ github.event.inputs.environment }}.auto.tfvars" >> $GITHUB_ENV
+          echo "SPOKE_DIR=spoke-${{ github.event.inputs.architecture_type }}" >> $GITHUB_ENV
+          echo "STATE_KEY=${{ github.event.inputs.environment }}-${{ github.event.inputs.architecture_type }}.tfstate" >> $GITHUB_ENV
       - name: Login to Azure
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
           creds: ${{ secrets[env.AZ_SP_SECRET_NAME] }}
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Download TFVARS
         run: |
           az storage blob download \
-            --file ./terraform/spoke/${{ env.TFVARS_SECRET_NAME }} \
+            --file ./terraform/${{ env.SPOKE_DIR }}/${{ env.TFVARS_SECRET_NAME }} \
             --container-name ${{ env.CONTAINER_SECRET_NAME }} \
             --account-name ${{ env.STORAGE_ACCOUNT_SECRET_NAME }} \
             --name ${{ env.TFVARS_SECRET_NAME }} \
@@ -356,7 +375,7 @@ jobs:
             --no-progress > /dev/null
       - name: Terraform - Setup Backend and Apply
         run: |
-          cd "terraform/spoke"
+          cd "terraform/${{ env.SPOKE_DIR }}"
           cat >backend.tf <<EOL
           terraform {
             backend "azurerm" {
@@ -364,7 +383,7 @@ jobs:
               resource_group_name  = "$ARM_BACKEND_RESOURCE_GROUP_NAME"
               storage_account_name = "$ARM_BACKEND_STORAGE_ACCOUNT_NAME"
               container_name       = "$ARM_CONTAINER_NAME"
-              key                  = "${{ github.event.inputs.environment }}.tfstate"
+              key                  = "${{ env.STATE_KEY }}"
               client_id            = "$ARM_CLIENT_ID"
               client_secret        = "$ARM_CLIENT_SECRET"
               tenant_id            = "$ARM_TENANT_ID"
@@ -401,4 +420,5 @@ jobs:
           ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
           ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
           ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          TF_VAR_AksKubernetesVersion: ${{ vars.AKS_KUBERNETES_VERSION }}
 

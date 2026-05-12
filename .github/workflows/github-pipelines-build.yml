@@ -9,8 +9,8 @@ on:
       - 'tags/*'
 
 env:
-  majorVersion: '25'
-  minorVersion: '08'
+  majorVersion: '26'
+  minorVersion: '04'
 
 # Build pipeline jobs
 jobs:
@@ -30,9 +30,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
       - name: Validate Terraform Hub
@@ -42,14 +42,20 @@ jobs:
           terraform -v
           terraform init -backend=false
           terraform validate
-      - name: Validate Terraform Application
+      - name: Validate Terraform Spoke (3-Tier)
         run: |
-          echo "##### Validating Terraform for Application Code #####"
-          cd "terraform/spoke"
+          echo "##### Validating Terraform for 3-Tier Spoke #####"
+          cd "terraform/spoke-3tier"
           terraform -v
           terraform init -backend=false
           terraform validate
-### Update folder above after testing.
+      - name: Validate Terraform Spoke (Microservices)
+        run: |
+          echo "##### Validating Terraform for Microservices Spoke #####"
+          cd "terraform/spoke-microservices"
+          terraform -v
+          terraform init -backend=false
+          terraform validate
 
   Tag_Commit_with_Version:
     name: Tag Commit with Version
@@ -57,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.SLS_EXTERNAL_SUBSCRIPTIONS_GITHUB }}
       - name: Push Version Tag
@@ -72,8 +78,14 @@ jobs:
           ENDTAG=""
           if [[ "$BRANCH_NAME" == "main" ]]; then
             ENDTAG=""
+          elif [[ "$BRANCH_NAME" =~ ^release/.*-ai$ ]]; then
+            ENDTAG="-release-ai"
           elif [[ "$BRANCH_NAME" =~ ^release/ ]]; then
             ENDTAG="-release"
+          elif [[ "$BRANCH_NAME" =~ ^feature/.*-ai$ ]]; then
+            ENDTAG="-feature-ai"
+          elif [[ "$BRANCH_NAME" =~ ^feature/ ]]; then
+            ENDTAG="-feature"
           else
             ENDTAG="-$BRANCH_NAME"
           fi

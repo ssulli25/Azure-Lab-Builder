@@ -1,7 +1,3 @@
-variable "AzFirewallMgmtSubnetPrefix" {
-  type = list(string)
-}
-
 variable "AzFwTier" {
   type = string
 }

@@ -61,7 +61,6 @@ locals {
   stripped_env_name        = replace(replace(var.EnvName, "sa-", ""), "hs-", "")
   web_vmss_source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.WebImageId}"
   app_vmss_source_image_id = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.AppImageId}"
-  data_vm_source_image_id  = "/subscriptions/${var.SubscriptionId}/resourceGroups/${local.stripped_env_name}-image-rg/providers/Microsoft.Compute/images/${var.DataImageId}"
 }
 
 #===============#
@@ -154,45 +153,51 @@ resource "azurerm_virtual_network" "vnet" {
 }
 
 resource "azurerm_subnet" "appgw_subnet" {
-  name                 = "web-appgw-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.AppGwSubnetPrefix
+  name                            = "web-appgw-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.AppGwSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "web_subnet" {
-  name                 = "web-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.WebSubnetPrefix
+  name                            = "web-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.WebSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "app_lb_subnet" {
-  name                 = "app-lb-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.AppLbSubnetPrefix
+  name                            = "app-lb-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.AppLbSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "app_subnet" {
-  name                 = "app-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.AppSubnetPrefix
+  name                            = "app-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.AppSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "data_lb_subnet" {
-  name                 = "data-lb-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.DataLbSubnetPrefix
+  name                            = "data-lb-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.DataLbSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_subnet" "data_subnet" {
-  name                 = "data-subnet"
-  resource_group_name  = azurerm_resource_group.network_rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = var.DataSubnetPrefix
+  name                            = "data-subnet"
+  resource_group_name             = azurerm_resource_group.network_rg.name
+  virtual_network_name            = azurerm_virtual_network.vnet.name
+  address_prefixes                = var.DataSubnetPrefix
+  default_outbound_access_enabled = false
 }
 
 ### Peerings ###
@@ -284,6 +289,10 @@ resource "azurerm_public_ip" "web_appgw" {
   resource_group_name = azurerm_resource_group.web_rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
+
+  lifecycle {
+    ignore_changes = [ip_tags]
+  }
 }
 
 ### App Load Balancer ###
@@ -788,6 +797,10 @@ resource "azurerm_public_ip" "nat_gateway_pip" {
   resource_group_name = azurerm_resource_group.network_rg.name
   allocation_method   = "Static"
   sku                 = "Standard"
+
+  lifecycle {
+    ignore_changes = [ip_tags]
+  }
 }
 
 resource "azurerm_subnet_nat_gateway_association" "web_subnet_nat_association" {
@@ -884,22 +897,30 @@ resource "azurerm_linux_virtual_machine_scale_set" "app_vmss" {
 
 ### Database Virtual Machines ###
 
-resource "azurerm_linux_virtual_machine" "db_vm_primary" {
-  name                            = "db-${var.EnvName}-vm-primary"
-  resource_group_name             = azurerm_resource_group.db_rg.name
-  location                        = azurerm_resource_group.db_rg.location
-  size                            = var.DbVmSize
-  admin_username                  = var.AdminUsername
-  admin_password                  = var.AdminPassword
-  disable_password_authentication = false
-  network_interface_ids           = [azurerm_network_interface.db_nic_primary.id]
+resource "azurerm_windows_virtual_machine" "db_vm_primary" {
+  name                      = "db-${var.EnvName}-vm-primary"
+  computer_name             = "db-${substr(var.EnvName, 0, 9)}-pri"
+  resource_group_name       = azurerm_resource_group.db_rg.name
+  location                  = azurerm_resource_group.db_rg.location
+  size                      = var.DbVmSize
+  admin_username            = var.AdminUsername
+  admin_password            = var.AdminPassword
+  network_interface_ids     = [azurerm_network_interface.db_nic_primary.id]
+  provision_vm_agent        = true
+  automatic_updates_enabled = false
+  timezone                  = "UTC"
 
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_id = local.data_vm_source_image_id
+  source_image_reference {
+    publisher = "MicrosoftSQLServer"
+    offer     = "sql2022-ws2022"
+    sku       = "sqldev-gen2"
+    version   = "latest"
+  }
 }
 
 resource "azurerm_network_interface" "db_nic_primary" {
@@ -920,22 +941,30 @@ resource "azurerm_network_interface_backend_address_pool_association" "primary_a
   backend_address_pool_id = azurerm_lb_backend_address_pool.data_backend_pool.id
 }
 
-resource "azurerm_linux_virtual_machine" "db_vm_secondary" {
-  name                            = "db-${var.EnvName}-vm-secondary"
-  resource_group_name             = azurerm_resource_group.db_rg.name
-  location                        = azurerm_resource_group.db_rg.location
-  size                            = var.DbVmSize
-  admin_username                  = var.AdminUsername
-  admin_password                  = var.AdminPassword
-  disable_password_authentication = false
-  network_interface_ids           = [azurerm_network_interface.db_nic_secondary.id]
+resource "azurerm_windows_virtual_machine" "db_vm_secondary" {
+  name                      = "db-${var.EnvName}-vm-secondary"
+  computer_name             = "db-${substr(var.EnvName, 0, 9)}-sec"
+  resource_group_name       = azurerm_resource_group.db_rg.name
+  location                  = azurerm_resource_group.db_rg.location
+  size                      = var.DbVmSize
+  admin_username            = var.AdminUsername
+  admin_password            = var.AdminPassword
+  network_interface_ids     = [azurerm_network_interface.db_nic_secondary.id]
+  provision_vm_agent        = true
+  automatic_updates_enabled = false
+  timezone                  = "UTC"
 
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "Premium_LRS"
   }
 
-  source_image_id = local.data_vm_source_image_id
+  source_image_reference {
+    publisher = "MicrosoftSQLServer"
+    offer     = "sql2022-ws2022"
+    sku       = "sqldev-gen2"
+    version   = "latest"
+  }
 }
 
 resource "azurerm_network_interface" "db_nic_secondary" {
@@ -969,7 +998,7 @@ resource "azurerm_managed_disk" "primary_data_disk" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "primary_data_disk_attachment" {
   managed_disk_id    = azurerm_managed_disk.primary_data_disk.id
-  virtual_machine_id = azurerm_linux_virtual_machine.db_vm_primary.id
+  virtual_machine_id = azurerm_windows_virtual_machine.db_vm_primary.id
   lun                = 0
   caching            = "ReadWrite"
 }
@@ -985,7 +1014,130 @@ resource "azurerm_managed_disk" "secondary_data_disk" {
 
 resource "azurerm_virtual_machine_data_disk_attachment" "secondary_data_disk_attachment" {
   managed_disk_id    = azurerm_managed_disk.secondary_data_disk.id
-  virtual_machine_id = azurerm_linux_virtual_machine.db_vm_secondary.id
+  virtual_machine_id = azurerm_windows_virtual_machine.db_vm_secondary.id
   lun                = 0
   caching            = "ReadWrite"
+}
+
+### SQL IaaS Agent Extension (azurerm_mssql_virtual_machine) ###
+#
+# Companion resource to each db_vm_* — installs and configures the SQL IaaS
+# Agent extension on the marketplace SQL VM. Microsoft's blessed pattern for
+# SQL on Azure VMs; replaces the prior Packer + sysprep approach which
+# Microsoft explicitly does NOT support for SQL marketplace images.
+#
+# storage_configuration uses LUN 0 (the data disk attached above) for data,
+# log, AND tempdb files (all on F:). Microsoft's docs support tempdb on the
+# ephemeral D: drive for higher IO, but the SQL IaaS extension is flaky
+# applying that on first boot ("System Drive returned status not ready for
+# use") because the temp disk isn't mounted yet when the extension fires.
+# Co-locating tempdb on F: trades some IO perf for first-deploy reliability,
+# which suits the dev/test workload here. Disk format is performed by the
+# extension on first apply.
+#
+# sql_license_type = "PAYG" is correct for the Developer SKU (billed at $0).
+
+resource "azurerm_mssql_virtual_machine" "db_vm_primary" {
+  virtual_machine_id    = azurerm_windows_virtual_machine.db_vm_primary.id
+  sql_license_type      = "PAYG"
+  r_services_enabled    = false
+  sql_connectivity_port = 1433
+  sql_connectivity_type = "PRIVATE"
+
+  storage_configuration {
+    disk_type             = "NEW"
+    storage_workload_type = "GENERAL"
+
+    data_settings {
+      default_file_path = "F:\\SQLData"
+      luns              = [0]
+    }
+    log_settings {
+      default_file_path = "F:\\SQLLog"
+      luns              = [0]
+    }
+    temp_db_settings {
+      default_file_path = "F:\\SQLTemp"
+      luns              = [0]
+    }
+  }
+
+  depends_on = [azurerm_virtual_machine_data_disk_attachment.primary_data_disk_attachment]
+}
+
+resource "azurerm_mssql_virtual_machine" "db_vm_secondary" {
+  virtual_machine_id    = azurerm_windows_virtual_machine.db_vm_secondary.id
+  sql_license_type      = "PAYG"
+  r_services_enabled    = false
+  sql_connectivity_port = 1433
+  sql_connectivity_type = "PRIVATE"
+
+  storage_configuration {
+    disk_type             = "NEW"
+    storage_workload_type = "GENERAL"
+
+    data_settings {
+      default_file_path = "F:\\SQLData"
+      luns              = [0]
+    }
+    log_settings {
+      default_file_path = "F:\\SQLLog"
+      luns              = [0]
+    }
+    temp_db_settings {
+      default_file_path = "F:\\SQLTemp"
+      luns              = [0]
+    }
+  }
+
+  depends_on = [azurerm_virtual_machine_data_disk_attachment.secondary_data_disk_attachment]
+}
+
+### Data-Tier OS Bootstrap (CustomScriptExtension) ###
+#
+# Runs scripts/data-bootstrap.ps1 as a Windows CSE after the SQL IaaS
+# Agent extension. Applies OS-level customizations the SQL IaaS extension
+# does not handle (firewall rules for AG/Browser/ICMP, ops dir, dbatools).
+# Intentionally does NOT manage SQL services, AG/HADR flags, or disk
+# formatting — those are owned by the SQL IaaS extension.
+#
+# Invocation pattern: commandToExecute with -EncodedCommand.
+#   - The Windows CSE (Microsoft.Compute/CustomScriptExtension v1.10) does
+#     NOT support an inline `script` field — that's a Linux-CSE-only
+#     feature. Windows requires commandToExecute (optionally with fileUris).
+#   - We base64(UTF-16LE) the script and pass via -EncodedCommand. cmd.exe
+#     caps the command line at ~8192 chars; encoding overhead is ~2.67x raw.
+#     Current script ~2.2KB raw → ~5.9KB encoded total → ~28% headroom.
+#     If the script ever needs to grow past ~3KB raw, switch to fileUris.
+#   - protected_settings (not settings) keeps the encoded payload out of
+#     plaintext Azure activity logs as a defensive default.
+
+resource "azurerm_virtual_machine_extension" "db_vm_primary_bootstrap" {
+  name                       = "sls-data-bootstrap"
+  virtual_machine_id         = azurerm_windows_virtual_machine.db_vm_primary.id
+  publisher                  = "Microsoft.Compute"
+  type                       = "CustomScriptExtension"
+  type_handler_version       = "1.10"
+  auto_upgrade_minor_version = true
+
+  protected_settings = jsonencode({
+    commandToExecute = "powershell.exe -ExecutionPolicy Bypass -EncodedCommand ${textencodebase64(file("${path.module}/scripts/data-bootstrap.ps1"), "UTF-16LE")}"
+  })
+
+  depends_on = [azurerm_mssql_virtual_machine.db_vm_primary]
+}
+
+resource "azurerm_virtual_machine_extension" "db_vm_secondary_bootstrap" {
+  name                       = "sls-data-bootstrap"
+  virtual_machine_id         = azurerm_windows_virtual_machine.db_vm_secondary.id
+  publisher                  = "Microsoft.Compute"
+  type                       = "CustomScriptExtension"
+  type_handler_version       = "1.10"
+  auto_upgrade_minor_version = true
+
+  protected_settings = jsonencode({
+    commandToExecute = "powershell.exe -ExecutionPolicy Bypass -EncodedCommand ${textencodebase64(file("${path.module}/scripts/data-bootstrap.ps1"), "UTF-16LE")}"
+  })
+
+  depends_on = [azurerm_mssql_virtual_machine.db_vm_secondary]
 }
