@@ -12,8 +12,8 @@ Azure-Lab-Builder supports two **topologies** — **hub-and-spoke** and **stand-
 
 | `architecture_type` | Compute | Data tier | Ingress | Terraform directory |
 |---|---|---|---|---|
-| `3tier` | VMSS (web + app, Nginx + .NET via Packer/Ansible) | 2× PostgreSQL VMs behind internal LB | Application Gateway | `terraform/spoke-3tier/` |
-| `microservices` | Azure Kubernetes Service (private API, Workload Identity, Azure CNI Overlay) | Azure SQL Database (PaaS, Entra-only auth, Private Endpoint) | App Gateway Ingress Controller (AGIC) | `terraform/spoke-microservices/` |
+| `3tier` | VMSS (web + app, Nginx + .NET via Packer/Ansible) | 2× SQL Server 2022 Developer VMs on Windows Server 2022 behind internal LB (Marketplace `sql2022-ws2022 / sqldev-gen2` + SQL IaaS Agent Extension + CSE bootstrap) | Application Gateway | `terraform/spoke-3tier/` |
+| `microservices` | Azure Kubernetes Service (private API, Workload Identity, Azure CNI Overlay) | Azure SQL Database (PaaS, SQL authentication, Private Endpoint) | App Gateway Ingress Controller (AGIC) | `terraform/spoke-microservices/` |
 
 The same `terraform/hub/` is reused by both architectures and both topologies. Selecting `microservices` provisions an AKS cluster, ACR (Premium with Private Endpoint), Key Vault, a User-Assigned Managed Identity, NAT Gateway (when no hub firewall is present), and Private DNS zones for the relevant `privatelink` namespaces — see `terraform/spoke-microservices/main.tf` for the full inventory.
 
@@ -58,16 +58,14 @@ Azure-Lab-Builder/
 ├── README.md
 ├── LICENSE                              # MIT License file
 ├── packer/
-│   ├── build.pkr.hcl                    # Packer build configuration
+│   ├── _shared.pkr.hcl                  # Shared Packer sources/plugins (loaded via directory mode)
+│   ├── build-linux.pkr.hcl              # Packer build configuration (Linux web/app images)
 │   └── ansible-playbooks/
 │       ├── app.yml                      # .NET application server configuration
-│       ├── data.yml                     # PostgreSQL database configuration
 │       └── web.yml                      # Nginx web server configuration
 ├── scripts/
 │   ├── check-job-status.sh              # CI/CD job validation script
 │   ├── restart-vm-vmss-per-sub.ps1      # VM/VMSS restart utility across subscriptions
-│   ├── sub-cost-estimation.ps1          # Azure subscription cost analysis
-│   ├── sub-quota-usage.ps1              # Subscription quota monitoring and reporting
 │   ├── ubuntu-linux-vm-vmss-update.ps1  # Ubuntu VM/VMSS update automation
 │   ├── verify-architecture-selection.sh # Architecture (true/false) deployment gate
 │   └── verify-architecture-type.sh      # Validates architecture_type input (3tier|microservices)
@@ -77,9 +75,11 @@ Azure-Lab-Builder/
 │   │   ├── providers.tf                 # Azure provider configuration
 │   │   └── variables.tf                 # Hub configuration variables
 │   ├── spoke-3tier/
-│   │   ├── main.tf                      # 3-tier spoke (VMSS + PostgreSQL)
+│   │   ├── main.tf                      # 3-tier spoke (VMSS web/app + SQL Server 2022 VMs)
 │   │   ├── providers.tf                 # Azure provider configuration
-│   │   └── variables.tf                 # 3-tier spoke configuration variables
+│   │   ├── variables.tf                 # 3-tier spoke configuration variables
+│   │   └── scripts/
+│   │       └── data-bootstrap.ps1       # CSE bootstrap for SQL Server data-tier VMs
 │   └── spoke-microservices/
 │       ├── main.tf                      # Microservices spoke (AKS + Azure SQL)
 │       ├── providers.tf                 # Azure provider configuration
@@ -87,7 +87,7 @@ Azure-Lab-Builder/
 └── .github/
     └── workflows/
         ├── github-pipelines-build.yml              # General build pipeline (validates both spokes)
-        ├── github-pipelines-build-packer.yml       # Packer image build pipeline (3-tier only)
+        ├── github-pipelines-build-packer.yml       # Packer image build pipeline (3-tier web/app images only)
         ├── github-pipelines-config-aks.yml         # Placeholder for AKS in-cluster baseline config
         ├── github-pipelines-deploy-hub+spoke.yml   # Hub-and-spoke deployment (architecture_type-aware)
         ├── github-pipelines-deploy-stand+alone.yml # Stand-alone deployment (architecture_type-aware)
@@ -124,7 +124,9 @@ WebInstanceCount   = 2
 AppInstanceCount   = 2
 WebImageId         = "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Compute/galleries/<gallery>/images/<def>/versions/<ver>"
 AppImageId         = "..."   # same Shared Image Gallery resource ID pattern as WebImageId
-DataImageId        = "..."   # same Shared Image Gallery resource ID pattern as WebImageId
+# Note: the data tier no longer uses a custom Packer image. SQL Server 2022 VMs are
+# deployed from the Marketplace image MicrosoftSQLServer / sql2022-ws2022 / sqldev-gen2
+# and configured via the SQL IaaS Agent Extension + scripts/data-bootstrap.ps1 CSE.
 AdminUsername      = "labadmin"
 
 # === Microservices ===
