@@ -10,10 +10,10 @@
 
 Azure-Lab-Builder supports two **topologies** — **hub-and-spoke** and **stand-alone** — and within each topology two **spoke architectures** (selected via the `architecture_type` workflow input):
 
-| `architecture_type` | Compute | Data tier | Ingress | Terraform directory |
+| `architecture_type` | Compute | Data | Ingress | Terraform directory |
 |---|---|---|---|---|
-| `3tier` | VMSS (web + app, Nginx + .NET via Packer/Ansible) | 2× SQL Server 2022 Developer VMs on Windows Server 2022 behind internal LB (Marketplace `sql2022-ws2022 / sqldev-gen2` + SQL IaaS Agent Extension + CSE bootstrap) | Application Gateway | `terraform/spoke-3tier/` |
-| `microservices` | Azure Kubernetes Service (private API, Workload Identity, Azure CNI Overlay) | Azure SQL Database (PaaS, SQL authentication, Private Endpoint) | App Gateway Ingress Controller (AGIC) | `terraform/spoke-microservices/` |
+| `3tier` | Linux VMSS (web + app) | SQL Server VMs (Windows) | Application Gateway | `terraform/spoke-3tier/` |
+| `microservices` | AKS | Azure SQL Database | Application Gateway (AGIC) | `terraform/spoke-microservices/` |
 
 The same `terraform/hub/` is reused by both architectures and both topologies. Selecting `microservices` provisions an AKS cluster, ACR (Premium with Private Endpoint), Key Vault, a User-Assigned Managed Identity, NAT Gateway (when no hub firewall is present), and Private DNS zones for the relevant `privatelink` namespaces — see `terraform/spoke-microservices/main.tf` for the full inventory.
 
@@ -94,16 +94,17 @@ Azure-Lab-Builder/
         └── github-pipelines-deploy-utility.yml     # Utility scripts execution pipeline
 ```
 
-### Tfvars convention
+### Tfvars and Terraform state
 
-Per-environment Terraform variables are stored in a secure Azure Storage container (`sls-terraform-state-<env>` for hub+spoke, `sls-terraform-state-sa-<env>` for stand-alone) and downloaded at deploy time. A single shared file per env covers both architectures:
+Per-environment Terraform variables are stored in a secure Azure Storage container (`sls-terraform-state-<env>` for hub+spoke, `sls-terraform-state-sa-<env>` for stand-alone) and downloaded at deploy time. A single shared file per env covers both architectures.
 
-| Use | Filename |
-|---|---|
-| Hub | `hub.auto.tfvars` |
-| Spoke (per env, both architectures) | `<env>.auto.tfvars` |
+| Component | Tfvars file | State key |
+|---|---|---|
+| Hub | `hub.auto.tfvars` | `hub.tfstate` |
+| 3-tier spoke (per env) | `<env>.auto.tfvars` | `<env>-3tier.tfstate` |
+| Microservices spoke (per env) | `<env>.auto.tfvars` | `<env>-microservices.tfstate` |
 
-Organize the file with comment headers so you can see at a glance which keys belong to which architecture:
+Organize the `.auto.tfvars` file with comment headers so you can see at a glance which keys belong to which architecture:
 
 ```hcl
 # === Shared ===
@@ -145,14 +146,6 @@ AksDnsServiceIp             = "172.16.0.10"
 AcrSku                      = "Premium"
 SqlDatabaseSku              = "GP_S_Gen5_2"
 ```
-
-### Terraform state keys
-
-| Use | State key |
-|---|---|
-| Hub | `hub.tfstate` |
-| 3-tier spoke (per env) | `<env>-3tier.tfstate` |
-| Microservices spoke (per env) | `<env>-microservices.tfstate` |
 
 ## Prerequisites
 
