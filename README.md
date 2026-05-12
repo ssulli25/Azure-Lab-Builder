@@ -146,10 +146,6 @@ AcrSku                      = "Premium"
 SqlDatabaseSku              = "GP_S_Gen5_2"
 ```
 
-> When you run a given architecture, Terraform will emit a harmless `Warning: Value for undeclared variable` for each key that belongs to the OTHER architecture. This is cosmetic — `auto.tfvars` undeclared-variable warnings do not fail the run.
->
-> The two architectures cannot coexist in the same env (the spoke VNet name `<EnvName>-<Region>-vnet` would collide). Deploy them into separate envs, or destroy one before standing up the other.
-
 ### Terraform state keys
 
 | Use | State key |
@@ -157,22 +153,6 @@ SqlDatabaseSku              = "GP_S_Gen5_2"
 | Hub | `hub.tfstate` |
 | 3-tier spoke (per env) | `<env>-3tier.tfstate` |
 | Microservices spoke (per env) | `<env>-microservices.tfstate` |
-
-> **Backend migration note:** earlier versions used `<env>.tfstate` (no architecture suffix) for the 3-tier spoke. Before your next 3-tier deploy, in each `sls-terraform-state-<env>` and `sls-terraform-state-sa-<env>` container either:
->
-> - **Rename** the existing blob `<env>.tfstate` → `<env>-3tier.tfstate` (Azure blobs cannot be renamed in place — copy then delete):
->
->   ```bash
->   az storage blob copy start \
->     --source-container <container> --source-blob <env>.tfstate \
->     --destination-container <container> --destination-blob <env>-3tier.tfstate \
->     --account-name <storage-account> --auth-mode login
->   az storage blob delete \
->     --container-name <container> --name <env>.tfstate \
->     --account-name <storage-account> --auth-mode login
->   ```
->
-> - **OR start fresh** if you have no live 3-tier resources to track — the next apply will create a new `<env>-3tier.tfstate`, and you can delete the orphan `<env>.tfstate`.
 
 ## Prerequisites
 
