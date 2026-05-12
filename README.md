@@ -2,7 +2,7 @@
 
 ## Overview
 
-**Azure-Lab-Builder** is a project for deploying, configuring, and managing a modular Azure lab environment. It leverages Terraform, Packer, Ansible, and automation scripts to enable rapid, repeatable, and secure provisioning of hub-and-spoke and stand-alone topologies. Two spoke architectures are supported — a classic **3-tier** model (web/app/data tiers on VMSS + PostgreSQL) and a **microservices** model (AKS + Azure SQL Database) — selectable per deployment via a single workflow input.
+**Azure-Lab-Builder** is a project for deploying, configuring, and managing a modular Azure lab environment. It leverages Terraform, Packer, Ansible, and automation scripts to enable rapid, repeatable, and secure provisioning of hub-and-spoke and stand-alone topologies. Two spoke architectures are supported — a classic **3-tier** model (Linux VMSS web/app + SQL Server VMs on Windows) and a **microservices** model (AKS + Azure SQL Database) — selectable per deployment via a single workflow input.
 
 ---
 
